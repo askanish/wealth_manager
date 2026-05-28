@@ -27,12 +27,19 @@ def init_db():
     conn = get_db()
     cursor = conn.cursor()
     
+    # Drop old schema and recreate with new schema
+    cursor.execute('DROP TABLE IF EXISTS fixed_deposits')
+    
     # Fixed Deposits table
     cursor.execute('''
-        CREATE TABLE IF NOT EXISTS fixed_deposits (
+        CREATE TABLE fixed_deposits (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             bank_name TEXT NOT NULL,
+            cust_id TEXT NOT NULL,
+            fd_number TEXT NOT NULL,
             principal REAL NOT NULL,
+            maturity_amt REAL NOT NULL,
+            interest_amt REAL NOT NULL,
             rate REAL NOT NULL,
             tenure_months INTEGER NOT NULL,
             maturity_date TEXT NOT NULL,
@@ -114,12 +121,53 @@ def add_fixed_deposit():
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute('''
-        INSERT INTO fixed_deposits (bank_name, principal, rate, tenure_months, maturity_date)
-        VALUES (?, ?, ?, ?, ?)
-    ''', (data['bank_name'], data['principal'], data['rate'], data['tenure_months'], data['maturity_date']))
+        INSERT INTO fixed_deposits (bank_name, cust_id, fd_number, principal, maturity_amt, interest_amt, rate, tenure_months, maturity_date)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ''', (data['bank_name'], data['cust_id'], data['fd_number'], data['principal'], data['maturity_amt'], data['interest_amt'], data['rate'], data['tenure_months'], data['maturity_date']))
     conn.commit()
     conn.close()
     return jsonify({'message': 'Fixed deposit added successfully'}), 201
+
+@app.route('/api/fixed-deposits/<int:fd_id>', methods=['PUT'])
+def update_fixed_deposit(fd_id):
+    try:
+        data = request.json
+        conn = get_db()
+        cursor = conn.cursor()
+        
+        # Check if record exists
+        cursor.execute('SELECT id FROM fixed_deposits WHERE id = ?', (fd_id,))
+        if not cursor.fetchone():
+            return jsonify({'error': 'Fixed deposit not found'}), 404
+        
+        cursor.execute('''
+            UPDATE fixed_deposits 
+            SET bank_name=?, cust_id=?, fd_number=?, principal=?, maturity_amt=?, interest_amt=?, rate=?, tenure_months=?, maturity_date=?
+            WHERE id=?
+        ''', (data['bank_name'], data['cust_id'], data['fd_number'], data['principal'], data['maturity_amt'], data['interest_amt'], data['rate'], data['tenure_months'], data['maturity_date'], fd_id))
+        conn.commit()
+        conn.close()
+        return jsonify({'message': 'Fixed deposit updated successfully'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/fixed-deposits/<int:fd_id>', methods=['DELETE'])
+def delete_fixed_deposit(fd_id):
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+        
+        # Check if record exists
+        cursor.execute('SELECT id FROM fixed_deposits WHERE id = ?', (fd_id,))
+        if not cursor.fetchone():
+            return jsonify({'error': 'Fixed deposit not found'}), 404
+        
+        cursor.execute('DELETE FROM fixed_deposits WHERE id = ?', (fd_id,))
+        conn.commit()
+        conn.close()
+        return jsonify({'message': 'Fixed deposit deleted successfully'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 # Routes for Mutual Funds
 @app.route('/api/mutual-funds', methods=['GET'])

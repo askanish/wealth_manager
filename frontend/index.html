@@ -133,6 +133,7 @@
                             <div class="card-body">
                                 <h5 class="card-title">Add Fixed Deposit</h5>
                                 <form id="fdForm">
+                                    <input type="hidden" id="fdEditId" value="">
                                     <div class="row">
                                         <div class="col-md-6">
                                             <div class="mb-3">
@@ -142,8 +143,36 @@
                                         </div>
                                         <div class="col-md-6">
                                             <div class="mb-3">
+                                                <label for="fdCustId" class="form-label">Customer ID</label>
+                                                <input type="text" class="form-control" id="fdCustId" placeholder="e.g., CUST12345" required>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="fdNumber" class="form-label">FD Number</label>
+                                                <input type="text" class="form-control" id="fdNumber" placeholder="e.g., FD0123456" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
                                                 <label for="fdPrincipal" class="form-label">Principal Amount (₹)</label>
                                                 <input type="number" class="form-control" id="fdPrincipal" placeholder="100000" step="0.01" required>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="fdMaturityAmt" class="form-label">Maturity Amount (₹)</label>
+                                                <input type="number" class="form-control" id="fdMaturityAmt" placeholder="105000" step="0.01" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="fdInterestAmt" class="form-label">Interest Amount (₹)</label>
+                                                <input type="number" class="form-control" id="fdInterestAmt" placeholder="5000" step="0.01" required>
                                             </div>
                                         </div>
                                     </div>
@@ -165,7 +194,11 @@
                                         <label for="fdMaturity" class="form-label">Maturity Date</label>
                                         <input type="date" class="form-control" id="fdMaturity" required>
                                     </div>
-                                    <button type="submit" class="btn btn-primary">Add Fixed Deposit</button>
+                                    <div class="d-flex gap-2">
+                                        <button type="submit" class="btn btn-primary" id="fdAddBtn">Add Fixed Deposit</button>
+                                        <button type="submit" class="btn btn-success" id="fdUpdateBtn" style="display:none;">Update Fixed Deposit</button>
+                                        <button type="button" class="btn btn-secondary" id="fdCancelBtn" style="display:none;" onclick="resetFDForm()">Cancel Edit</button>
+                                    </div>
                                 </form>
                             </div>
                         </div>

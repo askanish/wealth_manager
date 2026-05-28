@@ -197,6 +197,62 @@ async function loadPortfolioSummary() {
 }
 
 // Fixed Deposits Functions
+async function editFixedDeposit(id, dep) {
+    // Populate form with existing data
+    document.getElementById('fdEditId').value = id;
+    document.getElementById('fdBank').value = dep.bank_name;
+    document.getElementById('fdCustId').value = dep.cust_id;
+    document.getElementById('fdNumber').value = dep.fd_number;
+    document.getElementById('fdPrincipal').value = dep.principal;
+    document.getElementById('fdMaturityAmt').value = dep.maturity_amt;
+    document.getElementById('fdInterestAmt').value = dep.interest_amt;
+    document.getElementById('fdRate').value = dep.rate;
+    document.getElementById('fdTenure').value = dep.tenure_months;
+    document.getElementById('fdMaturity').value = dep.maturity_date;
+    
+    // Show update/cancel buttons, hide add button
+    document.getElementById('fdAddBtn').style.display = 'none';
+    document.getElementById('fdUpdateBtn').style.display = 'inline-block';
+    document.getElementById('fdCancelBtn').style.display = 'inline-block';
+    
+    // Scroll to form
+    document.querySelector('#fd-content form').scrollIntoView({ behavior: 'smooth' });
+}
+
+function resetFDForm() {
+    document.getElementById('fdForm').reset();
+    document.getElementById('fdEditId').value = '';
+    
+    // Show add button, hide update/cancel buttons
+    document.getElementById('fdAddBtn').style.display = 'inline-block';
+    document.getElementById('fdUpdateBtn').style.display = 'none';
+    document.getElementById('fdCancelBtn').style.display = 'none';
+}
+
+async function deleteFixedDeposit(id) {
+    if (!confirm('Are you sure you want to delete this fixed deposit?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_URL}/fixed-deposits/${id}`, {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            alert('Fixed deposit deleted successfully!');
+            loadFixedDeposits();
+            loadPortfolioSummary();
+        } else {
+            const errorData = await response.json();
+            alert('Error: ' + (errorData.error || 'Error deleting fixed deposit'));
+        }
+    } catch (error) {
+        console.error('Error deleting fixed deposit:', error);
+        alert('Error deleting fixed deposit: ' + error.message);
+    }
+}
+
 async function loadFixedDeposits() {
     try {
         const response = await fetch(`${API_URL}/fixed-deposits`);
@@ -207,16 +263,24 @@ async function loadFixedDeposits() {
         if (deposits.length === 0) {
             html += '<p class="text-muted">No fixed deposits added yet</p>';
         } else {
-            html += '<div class="table-responsive"><table class="table table-striped">';
-            html += '<thead><tr><th>Bank</th><th>Principal</th><th>Rate</th><th>Tenure</th><th>Maturity Date</th></tr></thead><tbody>';
+            html += '<div class="table-responsive"><table class="table table-striped table-hover" id="fdListTable">';
+            html += '<thead><tr><th>Bank</th><th>Cust ID</th><th>FD Number</th><th>Principal</th><th>Maturity Amt</th><th>Interest Amt</th><th>Rate</th><th>Tenure</th><th>Maturity Date</th><th>Actions</th></tr></thead><tbody>';
             
             deposits.forEach(dep => {
-                html += `<tr>
-                    <td>${dep.bank_name}</td>
-                    <td>${formatCurrency(dep.principal)}</td>
-                    <td>${dep.rate}%</td>
-                    <td>${dep.tenure_months} months</td>
-                    <td>${new Date(dep.maturity_date).toLocaleDateString('en-IN')}</td>
+                html += `<tr class="fd-row" data-fd='${JSON.stringify(dep)}' data-id="${dep.id}">
+                    <td class="fd-editable" style="cursor:pointer;">${dep.bank_name}</td>
+                    <td class="fd-editable" style="cursor:pointer;">${dep.cust_id}</td>
+                    <td class="fd-editable" style="cursor:pointer;">${dep.fd_number}</td>
+                    <td class="fd-editable" style="cursor:pointer;">${formatCurrency(dep.principal)}</td>
+                    <td class="fd-editable" style="cursor:pointer;">${formatCurrency(dep.maturity_amt)}</td>
+                    <td class="fd-editable" style="cursor:pointer;">${formatCurrency(dep.interest_amt)}</td>
+                    <td class="fd-editable" style="cursor:pointer;">${dep.rate}%</td>
+                    <td class="fd-editable" style="cursor:pointer;">${dep.tenure_months} months</td>
+                    <td class="fd-editable" style="cursor:pointer;">${new Date(dep.maturity_date).toLocaleDateString('en-IN')}</td>
+                    <td>
+                        <button class="btn btn-sm btn-warning fd-edit-btn" data-id="${dep.id}">✎ Edit</button>
+                        <button class="btn btn-sm btn-danger fd-delete-btn" data-id="${dep.id}">✕ Delete</button>
+                    </td>
                 </tr>`;
             });
             
@@ -225,6 +289,34 @@ async function loadFixedDeposits() {
         
         html += '</div></div>';
         document.getElementById('fdList').innerHTML = html;
+        
+        // Add event listeners to editable cells
+        document.querySelectorAll('.fd-editable').forEach(cell => {
+            cell.addEventListener('click', (e) => {
+                const row = e.target.closest('tr');
+                const depData = JSON.parse(row.dataset.fd);
+                editFixedDeposit(depData.id, depData);
+            });
+        });
+        
+        // Add event listeners to edit buttons
+        document.querySelectorAll('.fd-edit-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const row = e.target.closest('tr');
+                const depData = JSON.parse(row.dataset.fd);
+                editFixedDeposit(depData.id, depData);
+            });
+        });
+        
+        // Add event listeners to delete buttons
+        document.querySelectorAll('.fd-delete-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const id = btn.getAttribute('data-id');
+                deleteFixedDeposit(id);
+            });
+        });
     } catch (error) {
         console.error('Error loading fixed deposits:', error);
     }
@@ -233,32 +325,53 @@ async function loadFixedDeposits() {
 document.getElementById('fdForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     
+    const editId = document.getElementById('fdEditId').value;
     const formData = {
         bank_name: document.getElementById('fdBank').value,
+        cust_id: document.getElementById('fdCustId').value,
+        fd_number: document.getElementById('fdNumber').value,
         principal: parseFloat(document.getElementById('fdPrincipal').value),
+        maturity_amt: parseFloat(document.getElementById('fdMaturityAmt').value),
+        interest_amt: parseFloat(document.getElementById('fdInterestAmt').value),
         rate: parseFloat(document.getElementById('fdRate').value),
         tenure_months: parseInt(document.getElementById('fdTenure').value),
         maturity_date: document.getElementById('fdMaturity').value
     };
     
+    console.log('Submitting FD form - Edit ID:', editId, 'Data:', formData);
+    
     try {
-        const response = await fetch(`${API_URL}/fixed-deposits`, {
-            method: 'POST',
+        const url = editId ? `${API_URL}/fixed-deposits/${editId}` : `${API_URL}/fixed-deposits`;
+        const method = editId ? 'PUT' : 'POST';
+        
+        console.log(`Sending ${method} request to ${url}`);
+        
+        const response = await fetch(url, {
+            method: method,
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(formData)
         });
         
+        console.log('Response status:', response.status);
+        const responseData = await response.json();
+        console.log('Response data:', responseData);
+        
         if (response.ok) {
-            alert('Fixed deposit added successfully!');
-            document.getElementById('fdForm').reset();
+            alert(editId ? 'Fixed deposit updated successfully!' : 'Fixed deposit added successfully!');
+            resetFDForm();
             loadFixedDeposits();
             loadPortfolioSummary();
+        } else {
+            alert('Error: ' + (responseData.error || 'Error saving fixed deposit'));
+            console.error('Error response:', responseData);
         }
-    } catch (error) {
-        console.error('Error adding fixed deposit:', error);
-        alert('Error adding fixed deposit');
+    } catch (error) 
+    {        console.error('Error saving fixed deposit:', error);
+             alert('Error saving fixed deposit: ' + error.message);
     }
 });
+
+document.getElementById('fdResetBtn').addEventListener('click', resetFDForm);
 
 // Mutual Funds Functions
 async function loadMutualFunds() {
