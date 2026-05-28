@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: wealth-manager-backend
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_ENV=development
+    volumes:
+      - ./backend:/app
+      - ./data:/app/data
+    command: python app.py
+    networks:
+      - wealth-network
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: wealth-manager-frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    networks:
+      - wealth-network
+
+networks:
+  wealth-network:
+    driver: bridge
+
+volumes:
+  data:

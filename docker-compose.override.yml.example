@@ -1,0 +1,24 @@
+# docker-compose.override.yml.example
+# Copy this file to docker-compose.override.yml and customize as needed
+# Changes here will override docker-compose.yml defaults
+
+version: '3.8'
+
+services:
+  backend:
+    # Uncomment to use different port
+    # ports:
+    #   - "5001:5000"
+    
+    # Uncomment to add environment variables
+    # environment:
+    #   - FLASK_DEBUG=True
+
+  frontend:
+    # Uncomment to use different port
+    # ports:
+    #   - "8081:80"
+    
+    # Uncomment to add environment
+    # environment:
+    #   - UPSTREAM_BACKEND=http://your-server:5000
