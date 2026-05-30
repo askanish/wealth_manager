@@ -225,6 +225,7 @@
                             <div class="card-body">
                                 <h5 class="card-title">Add Mutual Fund</h5>
                                 <form id="mfForm">
+                                    <input type="hidden" id="mfEditId" value="">
                                     <div class="row">
                                         <div class="col-md-6">
                                             <div class="mb-3">
@@ -253,7 +254,11 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <button type="submit" class="btn btn-primary">Add Mutual Fund</button>
+                                    <div class="d-flex gap-2">
+                                        <button type="submit" class="btn btn-primary" id="mfAddBtn">Add Mutual Fund</button>
+                                        <button type="submit" class="btn btn-success" id="mfUpdateBtn" style="display:none;">Update Mutual Fund</button>
+                                        <button type="button" class="btn btn-secondary" id="mfCancelBtn" style="display:none;" onclick="resetMFForm()">Cancel Edit</button>
+                                    </div>
                                 </form>
                             </div>
                         </div>

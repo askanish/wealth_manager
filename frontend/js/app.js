@@ -484,26 +484,91 @@ if (fdAddBtn) {
 }
 
 // Mutual Funds Functions
+async function editMutualFund(id, fund) {
+    // Populate form with existing data
+    document.getElementById('mfEditId').value = id;
+    document.getElementById('mfName').value = fund.fund_name;
+    document.getElementById('mfUnits').value = fund.units;
+    document.getElementById('mfNAV').value = fund.nav;
+    document.getElementById('mfPurchase').value = fund.purchase_date;
+    
+    // Show update/cancel buttons, hide add button
+    document.getElementById('mfAddBtn').style.display = 'inline-block';
+    document.getElementById('mfUpdateBtn').style.display = 'inline-block';
+    document.getElementById('mfCancelBtn').style.display = 'inline-block';
+    
+    // Scroll to form
+    document.querySelector('#mf-content form').scrollIntoView({ behavior: 'smooth' });
+}
+
+function resetMFForm() {
+    document.getElementById('mfForm').reset();
+    document.getElementById('mfEditId').value = '';
+    
+    // Show add button, hide update/cancel buttons
+    document.getElementById('mfAddBtn').style.display = 'inline-block';
+    document.getElementById('mfUpdateBtn').style.display = 'none';
+    document.getElementById('mfCancelBtn').style.display = 'none';
+}
+
+function resetMFEditValue() {
+    // Clear the hidden edit ID field to indicate we're adding a new MF
+    document.getElementById('mfEditId').value = '';
+}
+
+async function deleteMutualFund(id) {
+    if (!confirm('Are you sure you want to delete this mutual fund?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_URL}/mutual-funds/${id}`, {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            alert('Mutual fund deleted successfully!');
+            loadMutualFunds();
+            loadPortfolioSummary();
+        } else {
+            const errorData = await response.json();
+            alert('Error: ' + (errorData.error || 'Error deleting mutual fund'));
+        }
+    } catch (error) {
+        console.error('Error deleting mutual fund:', error);
+        alert('Error deleting mutual fund: ' + error.message);
+    }
+}
+
 async function loadMutualFunds() {
     try {
+        console.log('loadMutualFunds: Starting...');
         const response = await fetch(`${API_URL}/mutual-funds`);
+        console.log('loadMutualFunds: API response status:', response.status);
+        
         const funds = await response.json();
+        console.log('loadMutualFunds: Received funds:', funds);
         
         let html = '<div class="card mt-3"><div class="card-body"><h5 class="card-title">Mutual Funds List</h5>';
         
-        if (funds.length === 0) {
+        if (!funds || funds.length === 0) {
+            console.log('loadMutualFunds: No funds found');
             html += '<p class="text-muted">No mutual funds added yet</p>';
         } else {
-            html += '<div class="table-responsive"><table class="table table-striped">';
-            html += '<thead><tr><th>Fund Name</th><th>Units</th><th>NAV</th><th>Total Value</th><th>Purchase Date</th></tr></thead><tbody>';
+            console.log('loadMutualFunds: Found', funds.length, 'funds');
+            html += '<div class="table-responsive"><table class="table table-striped table-hover" id="mfListTable">';
+            html += '<thead><tr><th>Fund Name</th><th>Units</th><th>NAV</th><th>Total Value</th><th>Purchase Date</th><th>Actions</th></tr></thead><tbody>';
             
             funds.forEach(fund => {
-                html += `<tr>
-                    <td>${fund.fund_name}</td>
-                    <td>${fund.units}</td>
-                    <td>${formatCurrency(fund.nav)}</td>
-                    <td>${formatCurrency(fund.total_value)}</td>
-                    <td>${new Date(fund.purchase_date).toLocaleDateString('en-IN')}</td>
+                html += `<tr class="mf-row" data-mf='${JSON.stringify(fund)}' data-id="${fund.id}">
+                    <td class="mf-editable" style="cursor:pointer;">${fund.fund_name}</td>
+                    <td class="mf-editable" style="cursor:pointer;">${fund.units}</td>
+                    <td class="mf-editable" style="cursor:pointer;">${formatCurrency(fund.nav)}</td>
+                    <td class="mf-editable" style="cursor:pointer;">${formatCurrency(fund.total_value)}</td>
+                    <td class="mf-editable" style="cursor:pointer;">${new Date(fund.purchase_date).toLocaleDateString('en-IN')}</td>
+                    <td>
+                        <button class="btn btn-sm btn-danger mf-delete-btn" data-id="${fund.id}">✕ Delete</button>
+                    </td>
                 </tr>`;
             });
             
@@ -511,40 +576,100 @@ async function loadMutualFunds() {
         }
         
         html += '</div></div>';
-        document.getElementById('mfList').innerHTML = html;
+        const mfListEl = document.getElementById('mfList');
+        console.log('loadMutualFunds: mfList element:', mfListEl);
+        
+        if (mfListEl) {
+            mfListEl.innerHTML = html;
+            console.log('loadMutualFunds: HTML set successfully');
+        } else {
+            console.error('loadMutualFunds: mfList element not found!');
+            return;
+        }
+        
+        // Add event listeners to editable cells
+        document.querySelectorAll('.mf-editable').forEach(cell => {
+            cell.addEventListener('click', (e) => {
+                const row = e.target.closest('tr');
+                const fundData = JSON.parse(row.dataset.mf);
+                editMutualFund(fundData.id, fundData);
+            });
+        });
+        
+        // Add event listeners to delete buttons
+        document.querySelectorAll('.mf-delete-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const id = btn.getAttribute('data-id');
+                deleteMutualFund(id);
+            });
+        });
+        
+        console.log('loadMutualFunds: Complete');
     } catch (error) {
-        console.error('Error loading mutual funds:', error);
+        console.error('loadMutualFunds: Error -', error);
     }
 }
 
-document.getElementById('mfForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const formData = {
-        fund_name: document.getElementById('mfName').value,
-        units: parseFloat(document.getElementById('mfUnits').value),
-        nav: parseFloat(document.getElementById('mfNAV').value),
-        purchase_date: document.getElementById('mfPurchase').value
-    };
-    
-    try {
-        const response = await fetch(`${API_URL}/mutual-funds`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(formData)
-        });
+// Add form submit listener for MF
+const mfForm = document.getElementById('mfForm');
+if (mfForm) {
+    mfForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
         
-        if (response.ok) {
-            alert('Mutual fund added successfully!');
-            document.getElementById('mfForm').reset();
-            loadMutualFunds();
-            loadPortfolioSummary();
+        const editId = document.getElementById('mfEditId').value;
+        const formData = {
+            fund_name: document.getElementById('mfName').value,
+            units: parseFloat(document.getElementById('mfUnits').value),
+            nav: parseFloat(document.getElementById('mfNAV').value),
+            purchase_date: document.getElementById('mfPurchase').value
+        };
+        
+        console.log('Submitting MF form - Edit ID:', editId, 'Data:', formData);
+        
+        try {
+            const url = editId ? `${API_URL}/mutual-funds/${editId}` : `${API_URL}/mutual-funds`;
+            const method = editId ? 'PUT' : 'POST';
+            
+            console.log(`Sending ${method} request to ${url}`);
+            
+            const response = await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
+            
+            console.log('Response status:', response.status);
+            const responseData = await response.json();
+            console.log('Response data:', responseData);
+            
+            if (response.ok) {
+                alert(editId ? 'Mutual fund updated successfully!' : 'Mutual fund added successfully!');
+                resetMFForm();
+                loadMutualFunds();
+                loadPortfolioSummary();
+            } else {
+                alert('Error: ' + (responseData.error || 'Error saving mutual fund'));
+                console.error('Error response:', responseData);
+            }
+        } catch (error) {
+            console.error('Error saving mutual fund:', error);
+            alert('Error saving mutual fund: ' + error.message);
         }
-    } catch (error) {
-        console.error('Error adding mutual fund:', error);
-        alert('Error adding mutual fund');
-    }
-});
+    });
+}
+
+// Add event listener to MF cancel button only if it exists
+const mfCancelBtn = document.getElementById('mfCancelBtn');
+if (mfCancelBtn) {
+    mfCancelBtn.addEventListener('click', resetMFForm);
+}
+
+// Add event listener to MF add button only if it exists
+const mfAddBtn = document.getElementById('mfAddBtn');
+if (mfAddBtn) {
+    mfAddBtn.addEventListener('click', resetMFEditValue);
+}
 
 // Stocks Functions
 async function loadStocks() {

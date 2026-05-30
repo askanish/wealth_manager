@@ -208,6 +208,48 @@ def add_mutual_fund():
     conn.close()
     return jsonify({'message': 'Mutual fund added successfully'}), 201
 
+@app.route('/api/mutual-funds/<int:mf_id>', methods=['PUT'])
+def update_mutual_fund(mf_id):
+    try:
+        data = request.json
+        conn = get_db()
+        cursor = conn.cursor()
+        
+        # Check if record exists
+        cursor.execute('SELECT id FROM mutual_funds WHERE id = ?', (mf_id,))
+        if not cursor.fetchone():
+            return jsonify({'error': 'Mutual fund not found'}), 404
+        
+        total_value = data['units'] * data['nav']
+        cursor.execute('''
+            UPDATE mutual_funds 
+            SET fund_name=?, units=?, nav=?, total_value=?, purchase_date=?
+            WHERE id=?
+        ''', (data['fund_name'], data['units'], data['nav'], total_value, data['purchase_date'], mf_id))
+        conn.commit()
+        conn.close()
+        return jsonify({'message': 'Mutual fund updated successfully'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/mutual-funds/<int:mf_id>', methods=['DELETE'])
+def delete_mutual_fund(mf_id):
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+        
+        # Check if record exists
+        cursor.execute('SELECT id FROM mutual_funds WHERE id = ?', (mf_id,))
+        if not cursor.fetchone():
+            return jsonify({'error': 'Mutual fund not found'}), 404
+        
+        cursor.execute('DELETE FROM mutual_funds WHERE id = ?', (mf_id,))
+        conn.commit()
+        conn.close()
+        return jsonify({'message': 'Mutual fund deleted successfully'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 # Routes for Stocks
 @app.route('/api/stocks', methods=['GET'])
 def get_stocks():
