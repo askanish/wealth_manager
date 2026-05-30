@@ -12,6 +12,10 @@ A comprehensive Docker-based web application for tracking and managing your fina
 - **Portfolio Summary**: Real-time dashboard showing total asset values
 - **Responsive Design**: Works on desktop and mobile devices
 
+## Wealth Manager Dashboard
+
+![Wealth Manager Screenshot](WealthManager.png)
+
 ## Architecture
 
 ```

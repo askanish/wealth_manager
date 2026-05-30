@@ -27,25 +27,40 @@ def init_db():
     conn = get_db()
     cursor = conn.cursor()
     
-    # Drop old schema and recreate with new schema
-    cursor.execute('DROP TABLE IF EXISTS fixed_deposits')
-    
-    # Fixed Deposits table
+    # Fixed Deposits table - Create if not exists
     cursor.execute('''
-        CREATE TABLE fixed_deposits (
+        CREATE TABLE IF NOT EXISTS fixed_deposits (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             bank_name TEXT NOT NULL,
-            cust_id TEXT NOT NULL,
-            fd_number TEXT NOT NULL,
+            cust_id TEXT,
+            fd_number TEXT,
             principal REAL NOT NULL,
-            maturity_amt REAL NOT NULL,
-            interest_amt REAL NOT NULL,
+            maturity_amt REAL,
+            interest_amt REAL,
             rate REAL NOT NULL,
             tenure_months INTEGER NOT NULL,
             maturity_date TEXT NOT NULL,
             date_created TEXT DEFAULT CURRENT_TIMESTAMP
         )
     ''')
+    
+    # Add missing columns if they don't exist (migration support)
+    try:
+        cursor.execute('ALTER TABLE fixed_deposits ADD COLUMN cust_id TEXT')
+    except:
+        pass
+    try:
+        cursor.execute('ALTER TABLE fixed_deposits ADD COLUMN fd_number TEXT')
+    except:
+        pass
+    try:
+        cursor.execute('ALTER TABLE fixed_deposits ADD COLUMN maturity_amt REAL')
+    except:
+        pass
+    try:
+        cursor.execute('ALTER TABLE fixed_deposits ADD COLUMN interest_amt REAL')
+    except:
+        pass
     
     # Mutual Funds table
     cursor.execute('''

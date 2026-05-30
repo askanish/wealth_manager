@@ -2,6 +2,90 @@ const API_URL = 'http://localhost:5000/api';
 
 let wealthDistributionChartInstance = null;
 let assetAllocationChartInstance = null;
+let lastPortfolioData = null;
+
+const ASSET_LABELS = ['Fixed Deposits', 'Mutual Funds', 'Stocks', 'RBI Bonds', 'PPF'];
+
+function getThemeColor(name) {
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
+function getChartPalette() {
+    const colors = [
+        getThemeColor('--fd-color'),
+        getThemeColor('--mf-color'),
+        getThemeColor('--stocks-color'),
+        getThemeColor('--bonds-color'),
+        getThemeColor('--ppf-color')
+    ];
+    return {
+        background: colors.map(c => c + 'cc'),
+        border: colors
+    };
+}
+
+function getChartThemeOptions() {
+    const textColor = getThemeColor('--chart-text');
+    return {
+        color: textColor,
+        plugins: {
+            legend: {
+                labels: { color: textColor, font: { family: "'DM Sans', sans-serif", size: 12 } }
+            }
+        },
+        scales: {
+            x: {
+                ticks: { color: textColor, font: { family: "'DM Sans', sans-serif" } },
+                grid: { color: getThemeColor('--chart-grid') }
+            },
+            y: {
+                ticks: { color: textColor, font: { family: "'DM Mono', monospace", size: 11 } },
+                grid: { color: getThemeColor('--chart-grid') }
+            }
+        }
+    };
+}
+
+function getEffectiveTheme() {
+    const stored = document.documentElement.getAttribute('data-theme');
+    if (stored === 'light' || stored === 'dark') return stored;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+
+function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('wm-theme', theme);
+    refreshChartsForTheme();
+}
+
+function initTheme() {
+    const toggle = document.getElementById('themeToggle');
+    if (toggle) {
+        toggle.addEventListener('click', () => {
+            applyTheme(getEffectiveTheme() === 'dark' ? 'light' : 'dark');
+        });
+    }
+
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+        if (!localStorage.getItem('wm-theme')) {
+            refreshChartsForTheme();
+        }
+    });
+}
+
+function refreshChartsForTheme() {
+    if (!lastPortfolioData) return;
+    if (wealthDistributionChartInstance) {
+        wealthDistributionChartInstance.destroy();
+        wealthDistributionChartInstance = null;
+    }
+    if (assetAllocationChartInstance) {
+        assetAllocationChartInstance.destroy();
+        assetAllocationChartInstance = null;
+    }
+    renderWealthDistributionChart(lastPortfolioData);
+    renderAssetAllocationChart(lastPortfolioData);
+}
 
 // Currency formatter
 function formatCurrency(value) {
@@ -17,9 +101,12 @@ function formatCurrency(value) {
 function renderWealthDistributionChart(data) {
     const ctx = document.getElementById('wealthDistributionChart');
     if (!ctx) return;
-    
+
+    const palette = getChartPalette();
+    const themeOpts = getChartThemeOptions();
+
     const chartData = {
-        labels: ['Fixed Deposits', 'Mutual Funds', 'Stocks', 'RBI Bonds', 'PPF'],
+        labels: ASSET_LABELS,
         datasets: [{
             label: 'Asset Value (₹)',
             data: [
@@ -29,26 +116,20 @@ function renderWealthDistributionChart(data) {
                 data.rbi_bonds || 0,
                 data.ppf || 0
             ],
-            backgroundColor: [
-                'rgba(54, 162, 235, 0.8)',
-                'rgba(75, 192, 192, 0.8)',
-                'rgba(153, 102, 255, 0.8)',
-                'rgba(255, 159, 64, 0.8)',
-                'rgba(255, 99, 132, 0.8)'
-            ],
-            borderColor: [
-                'rgba(54, 162, 235, 1)',
-                'rgba(75, 192, 192, 1)',
-                'rgba(153, 102, 255, 1)',
-                'rgba(255, 159, 64, 1)',
-                'rgba(255, 99, 132, 1)'
-            ],
-            borderWidth: 2
+            backgroundColor: palette.background,
+            borderColor: palette.border,
+            borderWidth: 2,
+            borderRadius: 6
         }]
     };
-    
+
     if (wealthDistributionChartInstance) {
         wealthDistributionChartInstance.data = chartData;
+        Object.assign(wealthDistributionChartInstance.options.plugins.legend.labels, themeOpts.plugins.legend.labels);
+        wealthDistributionChartInstance.options.scales.x.ticks.color = themeOpts.scales.x.ticks.color;
+        wealthDistributionChartInstance.options.scales.x.grid.color = themeOpts.scales.x.grid.color;
+        wealthDistributionChartInstance.options.scales.y.ticks.color = themeOpts.scales.y.ticks.color;
+        wealthDistributionChartInstance.options.scales.y.grid.color = themeOpts.scales.y.grid.color;
         wealthDistributionChartInstance.update();
     } else {
         wealthDistributionChartInstance = new Chart(ctx, {
@@ -58,18 +139,16 @@ function renderWealthDistributionChart(data) {
                 responsive: true,
                 maintainAspectRatio: true,
                 plugins: {
-                    legend: {
-                        display: true,
-                        position: 'top'
-                    },
-                    title: {
-                        display: false
-                    }
+                    legend: themeOpts.plugins.legend,
+                    title: { display: false }
                 },
                 scales: {
+                    x: themeOpts.scales.x,
                     y: {
+                        ...themeOpts.scales.y,
                         beginAtZero: true,
                         ticks: {
+                            ...themeOpts.scales.y.ticks,
                             callback: function(value) {
                                 return '₹' + (value / 100000).toFixed(1) + 'L';
                             }
@@ -85,7 +164,10 @@ function renderWealthDistributionChart(data) {
 function renderAssetAllocationChart(data) {
     const ctx = document.getElementById('assetAllocationChart');
     if (!ctx) return;
-    
+
+    const palette = getChartPalette();
+    const themeOpts = getChartThemeOptions();
+
     const values = [
         data.fixed_deposits || 0,
         data.mutual_funds || 0,
@@ -93,31 +175,21 @@ function renderAssetAllocationChart(data) {
         data.rbi_bonds || 0,
         data.ppf || 0
     ];
-    
+
     const chartData = {
-        labels: ['Fixed Deposits', 'Mutual Funds', 'Stocks', 'RBI Bonds', 'PPF'],
+        labels: ASSET_LABELS,
         datasets: [{
             data: values,
-            backgroundColor: [
-                'rgba(54, 162, 235, 0.8)',
-                'rgba(75, 192, 192, 0.8)',
-                'rgba(153, 102, 255, 0.8)',
-                'rgba(255, 159, 64, 0.8)',
-                'rgba(255, 99, 132, 0.8)'
-            ],
-            borderColor: [
-                'rgba(54, 162, 235, 1)',
-                'rgba(75, 192, 192, 1)',
-                'rgba(153, 102, 255, 1)',
-                'rgba(255, 159, 64, 1)',
-                'rgba(255, 99, 132, 1)'
-            ],
-            borderWidth: 2
+            backgroundColor: palette.background,
+            borderColor: palette.border,
+            borderWidth: 2,
+            hoverOffset: 8
         }]
     };
-    
+
     if (assetAllocationChartInstance) {
         assetAllocationChartInstance.data = chartData;
+        Object.assign(assetAllocationChartInstance.options.plugins.legend.labels, themeOpts.plugins.legend.labels);
         assetAllocationChartInstance.update();
     } else {
         assetAllocationChartInstance = new Chart(ctx, {
@@ -126,9 +198,10 @@ function renderAssetAllocationChart(data) {
             options: {
                 responsive: true,
                 maintainAspectRatio: true,
+                cutout: '58%',
                 plugins: {
                     legend: {
-                        display: true,
+                        ...themeOpts.plugins.legend,
                         position: 'bottom'
                     },
                     tooltip: {
@@ -185,7 +258,9 @@ async function loadPortfolioSummary() {
         const totalEl = document.getElementById('dashboard-total');
         console.log('dashboard-total element:', totalEl);
         if (totalEl) totalEl.textContent = formatCurrency(data.total_portfolio_value || 0);
-        
+
+        lastPortfolioData = data;
+
         // Render charts
         renderWealthDistributionChart(data);
         renderAssetAllocationChart(data);
@@ -211,7 +286,7 @@ async function editFixedDeposit(id, dep) {
     document.getElementById('fdMaturity').value = dep.maturity_date;
     
     // Show update/cancel buttons, hide add button
-    document.getElementById('fdAddBtn').style.display = 'none';
+    document.getElementById('fdAddBtn').style.display = 'inline-block';
     document.getElementById('fdUpdateBtn').style.display = 'inline-block';
     document.getElementById('fdCancelBtn').style.display = 'inline-block';
     
@@ -227,6 +302,11 @@ function resetFDForm() {
     document.getElementById('fdAddBtn').style.display = 'inline-block';
     document.getElementById('fdUpdateBtn').style.display = 'none';
     document.getElementById('fdCancelBtn').style.display = 'none';
+}
+
+function resetFDEditValue() {
+    // Clear the hidden edit ID field to indicate we're adding a new FD
+    document.getElementById('fdEditId').value = '';
 }
 
 async function deleteFixedDeposit(id) {
@@ -255,14 +335,20 @@ async function deleteFixedDeposit(id) {
 
 async function loadFixedDeposits() {
     try {
+        console.log('loadFixedDeposits: Starting...');
         const response = await fetch(`${API_URL}/fixed-deposits`);
+        console.log('loadFixedDeposits: API response status:', response.status);
+        
         const deposits = await response.json();
+        console.log('loadFixedDeposits: Received deposits:', deposits);
         
         let html = '<div class="card mt-3"><div class="card-body"><h5 class="card-title">Fixed Deposits List</h5>';
         
-        if (deposits.length === 0) {
+        if (!deposits || deposits.length === 0) {
+            console.log('loadFixedDeposits: No deposits found');
             html += '<p class="text-muted">No fixed deposits added yet</p>';
         } else {
+            console.log('loadFixedDeposits: Found', deposits.length, 'deposits');
             html += '<div class="table-responsive"><table class="table table-striped table-hover" id="fdListTable">';
             html += '<thead><tr><th>Bank</th><th>Cust ID</th><th>FD Number</th><th>Principal</th><th>Maturity Amt</th><th>Interest Amt</th><th>Rate</th><th>Tenure</th><th>Maturity Date</th><th>Actions</th></tr></thead><tbody>';
             
@@ -278,7 +364,6 @@ async function loadFixedDeposits() {
                     <td class="fd-editable" style="cursor:pointer;">${dep.tenure_months} months</td>
                     <td class="fd-editable" style="cursor:pointer;">${new Date(dep.maturity_date).toLocaleDateString('en-IN')}</td>
                     <td>
-                        <button class="btn btn-sm btn-warning fd-edit-btn" data-id="${dep.id}">✎ Edit</button>
                         <button class="btn btn-sm btn-danger fd-delete-btn" data-id="${dep.id}">✕ Delete</button>
                     </td>
                 </tr>`;
@@ -288,7 +373,16 @@ async function loadFixedDeposits() {
         }
         
         html += '</div></div>';
-        document.getElementById('fdList').innerHTML = html;
+        const fdListEl = document.getElementById('fdList');
+        console.log('loadFixedDeposits: fdList element:', fdListEl);
+        
+        if (fdListEl) {
+            fdListEl.innerHTML = html;
+            console.log('loadFixedDeposits: HTML set successfully');
+        } else {
+            console.error('loadFixedDeposits: fdList element not found!');
+            return;
+        }
         
         // Add event listeners to editable cells
         document.querySelectorAll('.fd-editable').forEach(cell => {
@@ -317,61 +411,77 @@ async function loadFixedDeposits() {
                 deleteFixedDeposit(id);
             });
         });
+        
+        console.log('loadFixedDeposits: Complete');
     } catch (error) {
-        console.error('Error loading fixed deposits:', error);
+        console.error('loadFixedDeposits: Error -', error);
     }
 }
 
-document.getElementById('fdForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const editId = document.getElementById('fdEditId').value;
-    const formData = {
-        bank_name: document.getElementById('fdBank').value,
-        cust_id: document.getElementById('fdCustId').value,
-        fd_number: document.getElementById('fdNumber').value,
-        principal: parseFloat(document.getElementById('fdPrincipal').value),
-        maturity_amt: parseFloat(document.getElementById('fdMaturityAmt').value),
-        interest_amt: parseFloat(document.getElementById('fdInterestAmt').value),
-        rate: parseFloat(document.getElementById('fdRate').value),
-        tenure_months: parseInt(document.getElementById('fdTenure').value),
-        maturity_date: document.getElementById('fdMaturity').value
-    };
-    
-    console.log('Submitting FD form - Edit ID:', editId, 'Data:', formData);
-    
-    try {
-        const url = editId ? `${API_URL}/fixed-deposits/${editId}` : `${API_URL}/fixed-deposits`;
-        const method = editId ? 'PUT' : 'POST';
+// Add form submit listener only if form exists
+const fdForm = document.getElementById('fdForm');
+if (fdForm) {
+    fdForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
         
-        console.log(`Sending ${method} request to ${url}`);
+        const editId = document.getElementById('fdEditId').value;
+        const formData = {
+            bank_name: document.getElementById('fdBank').value,
+            cust_id: document.getElementById('fdCustId').value,
+            fd_number: document.getElementById('fdNumber').value,
+            principal: parseFloat(document.getElementById('fdPrincipal').value),
+            maturity_amt: parseFloat(document.getElementById('fdMaturityAmt').value),
+            interest_amt: parseFloat(document.getElementById('fdInterestAmt').value),
+            rate: parseFloat(document.getElementById('fdRate').value),
+            tenure_months: parseInt(document.getElementById('fdTenure').value),
+            maturity_date: document.getElementById('fdMaturity').value
+        };
         
-        const response = await fetch(url, {
-            method: method,
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(formData)
-        });
+        console.log('Submitting FD form - Edit ID:', editId, 'Data:', formData);
         
-        console.log('Response status:', response.status);
-        const responseData = await response.json();
-        console.log('Response data:', responseData);
-        
-        if (response.ok) {
-            alert(editId ? 'Fixed deposit updated successfully!' : 'Fixed deposit added successfully!');
-            resetFDForm();
-            loadFixedDeposits();
-            loadPortfolioSummary();
-        } else {
-            alert('Error: ' + (responseData.error || 'Error saving fixed deposit'));
-            console.error('Error response:', responseData);
+        try {
+            const url = editId ? `${API_URL}/fixed-deposits/${editId}` : `${API_URL}/fixed-deposits`;
+            const method = editId ? 'PUT' : 'POST';
+            
+            console.log(`Sending ${method} request to ${url}`);
+            
+            const response = await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
+            
+            console.log('Response status:', response.status);
+            const responseData = await response.json();
+            console.log('Response data:', responseData);
+            
+            if (response.ok) {
+                alert(editId ? 'Fixed deposit updated successfully!' : 'Fixed deposit added successfully!');
+                resetFDForm();
+                loadFixedDeposits();
+                loadPortfolioSummary();
+            } else {
+                alert('Error: ' + (responseData.error || 'Error saving fixed deposit'));
+                console.error('Error response:', responseData);
+            }
+        } catch (error) {
+            console.error('Error saving fixed deposit:', error);
+            alert('Error saving fixed deposit: ' + error.message);
         }
-    } catch (error) 
-    {        console.error('Error saving fixed deposit:', error);
-             alert('Error saving fixed deposit: ' + error.message);
-    }
-});
+    });
+}
 
-document.getElementById('fdResetBtn').addEventListener('click', resetFDForm);
+// Add event listener to cancel button only if it exists
+const fdCancelBtn = document.getElementById('fdCancelBtn');
+if (fdCancelBtn) {
+    fdCancelBtn.addEventListener('click', resetFDForm);
+}
+
+// Add event listener to cancel button only if it exists
+const fdAddBtn = document.getElementById('fdAddBtn');
+if (fdAddBtn) {
+    fdAddBtn.addEventListener('click', resetFDEditValue);
+}
 
 // Mutual Funds Functions
 async function loadMutualFunds() {
@@ -640,6 +750,8 @@ document.getElementById('ppfForm').addEventListener('submit', async (e) => {
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
+    initTheme();
+    console.log('Page loaded - initializing data load');
     loadPortfolioSummary();
     loadFixedDeposits();
     loadMutualFunds();
@@ -649,6 +761,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
 
     // setInterval(() => {
+    //     console.log('Auto-refresh triggered');
     //     loadPortfolioSummary();
     //     loadFixedDeposits();
     //     loadMutualFunds();
