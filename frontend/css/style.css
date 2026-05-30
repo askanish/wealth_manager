@@ -112,7 +112,7 @@
         --bg-input: #1c2433;
 
         --text-primary: #f1f5f9;
-        --text-secondary: #94a3b8;
+        --text-secondary: #f1f4f8;
         --text-muted: #64748b;
         --text-on-accent: #ecfdf5;
 
@@ -483,7 +483,7 @@ body {
 .table thead th {
     background-color: var(--bg-surface-raised);
     border-bottom: 2px solid var(--border);
-    color: var(--text-secondary);
+    color: var(--text-primary);
     font-weight: 600;
     text-transform: uppercase;
     font-size: 0.75rem;
@@ -495,6 +495,7 @@ body {
     padding: 0.75rem;
     vertical-align: middle;
     border-color: var(--border);
+    color: var(--text-primary);
 }
 
 .table tbody tr {
