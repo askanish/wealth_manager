@@ -271,6 +271,7 @@
                             <div class="card-body">
                                 <h5 class="card-title">Add Stock</h5>
                                 <form id="stocksForm">
+                                    <input type="hidden" id="stockEditId" value="">
                                     <div class="row">
                                         <div class="col-md-6">
                                             <div class="mb-3">
@@ -313,7 +314,11 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <button type="submit" class="btn btn-primary">Add Stock</button>
+                                    <div class="d-flex gap-2">
+                                        <button type="submit" class="btn btn-primary" id="stockAddBtn">Add Stock</button>
+                                        <button type="submit" class="btn btn-success" id="stockUpdateBtn" style="display:none;">Update Stock</button>
+                                        <button type="button" class="btn btn-secondary" id="stockCancelBtn" style="display:none;" onclick="resetStockForm()">Cancel Edit</button>
+                                    </div>
                                 </form>
                             </div>
                         </div>
@@ -385,6 +390,7 @@
                             <div class="card-body">
                                 <h5 class="card-title">Add PPF Contribution</h5>
                                 <form id="ppfForm">
+                                    <input type="hidden" id="ppfEditId" value="">
                                     <div class="row">
                                         <div class="col-md-6">
                                             <div class="mb-3">
@@ -417,7 +423,11 @@
                                         <label for="ppfMaturityYear" class="form-label">Maturity Year</label>
                                         <input type="number" class="form-control" id="ppfMaturityYear" placeholder="2033" required>
                                     </div>
-                                    <button type="submit" class="btn btn-primary">Add PPF Contribution</button>
+                                    <div class="d-flex gap-2">
+                                        <button type="submit" class="btn btn-primary" id="ppfAddBtn">Add PPF Contribution</button>
+                                        <button type="submit" class="btn btn-success" id="ppfUpdateBtn" style="display:none;">Update PPF Contribution</button>
+                                        <button type="button" class="btn btn-secondary" id="ppfCancelBtn" style="display:none;" onclick="resetPPFForm()">Cancel Edit</button>
+                                    </div>
                                 </form>
                             </div>
                         </div>

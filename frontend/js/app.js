@@ -271,161 +271,37 @@ async function loadPortfolioSummary() {
     }
 }
 
-// Fixed Deposits Functions
-async function editFixedDeposit(id, dep) {
-    // Populate form with existing data
-    document.getElementById('fdEditId').value = id;
-    document.getElementById('fdBank').value = dep.bank_name;
-    document.getElementById('fdCustId').value = dep.cust_id;
-    document.getElementById('fdNumber').value = dep.fd_number;
-    document.getElementById('fdPrincipal').value = dep.principal;
-    document.getElementById('fdMaturityAmt').value = dep.maturity_amt;
-    document.getElementById('fdInterestAmt').value = dep.interest_amt;
-    document.getElementById('fdRate').value = dep.rate;
-    document.getElementById('fdTenure').value = dep.tenure_months;
-    document.getElementById('fdMaturity').value = dep.maturity_date;
-    
-    // Show update/cancel buttons, hide add button
-    document.getElementById('fdAddBtn').style.display = 'inline-block';
-    document.getElementById('fdUpdateBtn').style.display = 'inline-block';
-    document.getElementById('fdCancelBtn').style.display = 'inline-block';
-    
-    // Scroll to form
-    document.querySelector('#fd-content form').scrollIntoView({ behavior: 'smooth' });
-}
+// ============================================
+// COMMON ASSET MANAGEMENT CONFIGURATION
+// ============================================
 
-function resetFDForm() {
-    document.getElementById('fdForm').reset();
-    document.getElementById('fdEditId').value = '';
-    
-    // Show add button, hide update/cancel buttons
-    document.getElementById('fdAddBtn').style.display = 'inline-block';
-    document.getElementById('fdUpdateBtn').style.display = 'none';
-    document.getElementById('fdCancelBtn').style.display = 'none';
-}
-
-function resetFDEditValue() {
-    // Clear the hidden edit ID field to indicate we're adding a new FD
-    document.getElementById('fdEditId').value = '';
-}
-
-async function deleteFixedDeposit(id) {
-    if (!confirm('Are you sure you want to delete this fixed deposit?')) {
-        return;
-    }
-    
-    try {
-        const response = await fetch(`${API_URL}/fixed-deposits/${id}`, {
-            method: 'DELETE'
-        });
-        
-        if (response.ok) {
-            alert('Fixed deposit deleted successfully!');
-            loadFixedDeposits();
-            loadPortfolioSummary();
-        } else {
-            const errorData = await response.json();
-            alert('Error: ' + (errorData.error || 'Error deleting fixed deposit'));
-        }
-    } catch (error) {
-        console.error('Error deleting fixed deposit:', error);
-        alert('Error deleting fixed deposit: ' + error.message);
-    }
-}
-
-async function loadFixedDeposits() {
-    try {
-        console.log('loadFixedDeposits: Starting...');
-        const response = await fetch(`${API_URL}/fixed-deposits`);
-        console.log('loadFixedDeposits: API response status:', response.status);
-        
-        const deposits = await response.json();
-        console.log('loadFixedDeposits: Received deposits:', deposits);
-        
-        let html = '<div class="card mt-3"><div class="card-body"><h5 class="card-title">Fixed Deposits List</h5>';
-        
-        if (!deposits || deposits.length === 0) {
-            console.log('loadFixedDeposits: No deposits found');
-            html += '<p class="text-muted">No fixed deposits added yet</p>';
-        } else {
-            console.log('loadFixedDeposits: Found', deposits.length, 'deposits');
-            html += '<div class="table-responsive"><table class="table table-striped table-hover" id="fdListTable">';
-            html += '<thead><tr><th>Bank</th><th>Cust ID</th><th>FD Number</th><th>Principal</th><th>Maturity Amt</th><th>Interest Amt</th><th>Rate</th><th>Tenure</th><th>Maturity Date</th><th>Actions</th></tr></thead><tbody>';
-            
-            deposits.forEach(dep => {
-                html += `<tr class="fd-row" data-fd='${JSON.stringify(dep)}' data-id="${dep.id}">
-                    <td class="fd-editable" style="cursor:pointer;">${dep.bank_name}</td>
-                    <td class="fd-editable" style="cursor:pointer;">${dep.cust_id}</td>
-                    <td class="fd-editable" style="cursor:pointer;">${dep.fd_number}</td>
-                    <td class="fd-editable" style="cursor:pointer;">${formatCurrency(dep.principal)}</td>
-                    <td class="fd-editable" style="cursor:pointer;">${formatCurrency(dep.maturity_amt)}</td>
-                    <td class="fd-editable" style="cursor:pointer;">${formatCurrency(dep.interest_amt)}</td>
-                    <td class="fd-editable" style="cursor:pointer;">${dep.rate}%</td>
-                    <td class="fd-editable" style="cursor:pointer;">${dep.tenure_months} months</td>
-                    <td class="fd-editable" style="cursor:pointer;">${new Date(dep.maturity_date).toLocaleDateString('en-IN')}</td>
-                    <td>
-                        <button class="btn btn-sm btn-danger fd-delete-btn" data-id="${dep.id}">✕ Delete</button>
-                    </td>
-                </tr>`;
-            });
-            
-            html += '</tbody></table></div>';
-        }
-        
-        html += '</div></div>';
-        const fdListEl = document.getElementById('fdList');
-        console.log('loadFixedDeposits: fdList element:', fdListEl);
-        
-        if (fdListEl) {
-            fdListEl.innerHTML = html;
-            console.log('loadFixedDeposits: HTML set successfully');
-        } else {
-            console.error('loadFixedDeposits: fdList element not found!');
-            return;
-        }
-        
-        // Add event listeners to editable cells
-        document.querySelectorAll('.fd-editable').forEach(cell => {
-            cell.addEventListener('click', (e) => {
-                const row = e.target.closest('tr');
-                const depData = JSON.parse(row.dataset.fd);
-                editFixedDeposit(depData.id, depData);
-            });
-        });
-        
-        // Add event listeners to edit buttons
-        document.querySelectorAll('.fd-edit-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const row = e.target.closest('tr');
-                const depData = JSON.parse(row.dataset.fd);
-                editFixedDeposit(depData.id, depData);
-            });
-        });
-        
-        // Add event listeners to delete buttons
-        document.querySelectorAll('.fd-delete-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const id = btn.getAttribute('data-id');
-                deleteFixedDeposit(id);
-            });
-        });
-        
-        console.log('loadFixedDeposits: Complete');
-    } catch (error) {
-        console.error('loadFixedDeposits: Error -', error);
-    }
-}
-
-// Add form submit listener only if form exists
-const fdForm = document.getElementById('fdForm');
-if (fdForm) {
-    fdForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const editId = document.getElementById('fdEditId').value;
-        const formData = {
+const ASSET_TYPES = {
+    FD: {
+        apiEndpoint: 'fixed-deposits',
+        formId: 'fdForm',
+        listId: 'fdList',
+        editIdFieldId: 'fdEditId',
+        addBtnId: 'fdAddBtn',
+        updateBtnId: 'fdUpdateBtn',
+        cancelBtnId: 'fdCancelBtn',
+        contentTabId: 'fd-content',
+        editableClass: 'fd-editable',
+        deleteClass: 'fd-delete-btn',
+        rowClass: 'fd-row',
+        dataAttr: 'data-fd',
+        tableHeaders: ['Bank', 'Cust ID', 'FD Number', 'Principal', 'Maturity Amt', 'Interest Amt', 'Rate', 'Tenure', 'Maturity Date', 'Actions'],
+        fields: {
+            'fdBank': 'bank_name',
+            'fdCustId': 'cust_id',
+            'fdNumber': 'fd_number',
+            'fdPrincipal': 'principal',
+            'fdMaturityAmt': 'maturity_amt',
+            'fdInterestAmt': 'interest_amt',
+            'fdRate': 'rate',
+            'fdTenure': 'tenure_months',
+            'fdMaturity': 'maturity_date'
+        },
+        getFormData: () => ({
             bank_name: document.getElementById('fdBank').value,
             cust_id: document.getElementById('fdCustId').value,
             fd_number: document.getElementById('fdNumber').value,
@@ -435,12 +311,334 @@ if (fdForm) {
             rate: parseFloat(document.getElementById('fdRate').value),
             tenure_months: parseInt(document.getElementById('fdTenure').value),
             maturity_date: document.getElementById('fdMaturity').value
-        };
+        }),
+        populateForm: (data) => {
+            document.getElementById('fdBank').value = data.bank_name;
+            document.getElementById('fdCustId').value = data.cust_id;
+            document.getElementById('fdNumber').value = data.fd_number;
+            document.getElementById('fdPrincipal').value = data.principal;
+            document.getElementById('fdMaturityAmt').value = data.maturity_amt;
+            document.getElementById('fdInterestAmt').value = data.interest_amt;
+            document.getElementById('fdRate').value = data.rate;
+            document.getElementById('fdTenure').value = data.tenure_months;
+            document.getElementById('fdMaturity').value = data.maturity_date;
+        },
+        formatRow: (item) => {
+            return `<tr class="fd-row" data-fd='${JSON.stringify(item)}' data-id="${item.id}">
+                <td class="fd-editable" style="cursor:pointer;">${item.bank_name}</td>
+                <td class="fd-editable" style="cursor:pointer;">${item.cust_id}</td>
+                <td class="fd-editable" style="cursor:pointer;">${item.fd_number}</td>
+                <td class="fd-editable" style="cursor:pointer;">${formatCurrency(item.principal)}</td>
+                <td class="fd-editable" style="cursor:pointer;">${formatCurrency(item.maturity_amt)}</td>
+                <td class="fd-editable" style="cursor:pointer;">${formatCurrency(item.interest_amt)}</td>
+                <td class="fd-editable" style="cursor:pointer;">${item.rate}%</td>
+                <td class="fd-editable" style="cursor:pointer;">${item.tenure_months} months</td>
+                <td class="fd-editable" style="cursor:pointer;">${new Date(item.maturity_date).toLocaleDateString('en-IN')}</td>
+                <td><button class="btn btn-sm btn-danger fd-delete-btn" data-id="${item.id}">✕ Delete</button></td>
+            </tr>`;
+        }
+    },
+    MF: {
+        apiEndpoint: 'mutual-funds',
+        formId: 'mfForm',
+        listId: 'mfList',
+        editIdFieldId: 'mfEditId',
+        addBtnId: 'mfAddBtn',
+        updateBtnId: 'mfUpdateBtn',
+        cancelBtnId: 'mfCancelBtn',
+        contentTabId: 'mf-content',
+        editableClass: 'mf-editable',
+        deleteClass: 'mf-delete-btn',
+        rowClass: 'mf-row',
+        dataAttr: 'data-mf',
+        tableHeaders: ['Fund Name', 'Units', 'NAV', 'Total Value', 'Purchase Date', 'Actions'],
+        fields: {
+            'mfName': 'fund_name',
+            'mfUnits': 'units',
+            'mfNAV': 'nav',
+            'mfPurchase': 'purchase_date'
+        },
+        getFormData: () => ({
+            fund_name: document.getElementById('mfName').value,
+            units: parseFloat(document.getElementById('mfUnits').value),
+            nav: parseFloat(document.getElementById('mfNAV').value),
+            purchase_date: document.getElementById('mfPurchase').value
+        }),
+        populateForm: (data) => {
+            document.getElementById('mfName').value = data.fund_name;
+            document.getElementById('mfUnits').value = data.units;
+            document.getElementById('mfNAV').value = data.nav;
+            document.getElementById('mfPurchase').value = data.purchase_date;
+        },
+        formatRow: (item) => {
+            return `<tr class="mf-row" data-mf='${JSON.stringify(item)}' data-id="${item.id}">
+                <td class="mf-editable" style="cursor:pointer;">${item.fund_name}</td>
+                <td class="mf-editable" style="cursor:pointer;">${item.units}</td>
+                <td class="mf-editable" style="cursor:pointer;">${formatCurrency(item.nav)}</td>
+                <td class="mf-editable" style="cursor:pointer;">${formatCurrency(item.total_value)}</td>
+                <td class="mf-editable" style="cursor:pointer;">${new Date(item.purchase_date).toLocaleDateString('en-IN')}</td>
+                <td><button class="btn btn-sm btn-danger mf-delete-btn" data-id="${item.id}">✕ Delete</button></td>
+            </tr>`;
+        }
+    },
+    STOCK: {
+        apiEndpoint: 'stocks',
+        formId: 'stocksForm',
+        listId: 'stocksList',
+        editIdFieldId: 'stockEditId',
+        addBtnId: 'stockAddBtn',
+        updateBtnId: 'stockUpdateBtn',
+        cancelBtnId: 'stockCancelBtn',
+        contentTabId: 'stocks-content',
+        editableClass: 'stock-editable',
+        deleteClass: 'stock-delete-btn',
+        rowClass: 'stock-row',
+        dataAttr: 'data-stock',
+        tableHeaders: ['Stock', 'Symbol', 'Quantity', 'Avg Buy Price', 'Current Price', 'Total Value', 'Gain/Loss', 'Actions'],
+        fields: {
+            'stockName': 'stock_name',
+            'stockSymbol': 'symbol',
+            'stockQty': 'quantity',
+            'stockPurchasePrice': 'purchase_price',
+            'stockCurrentPrice': 'current_price',
+            'stockPurchase': 'purchase_date'
+        },
+        getFormData: () => ({
+            stock_name: document.getElementById('stockName').value,
+            symbol: document.getElementById('stockSymbol').value,
+            quantity: parseInt(document.getElementById('stockQty').value),
+            purchase_price: parseFloat(document.getElementById('stockPurchasePrice').value),
+            current_price: parseFloat(document.getElementById('stockCurrentPrice').value),
+            purchase_date: document.getElementById('stockPurchase').value
+        }),
+        populateForm: (data) => {
+            document.getElementById('stockName').value = data.stock_name;
+            document.getElementById('stockSymbol').value = data.symbol;
+            document.getElementById('stockQty').value = data.quantity;
+            document.getElementById('stockPurchasePrice').value = data.purchase_price;
+            document.getElementById('stockCurrentPrice').value = data.current_price;
+            document.getElementById('stockPurchase').value = data.purchase_date;
+        },
+        formatRow: (item) => {
+            const gain = (item.current_price - item.purchase_price) * item.quantity;
+            const gainPercent = ((item.current_price - item.purchase_price) / item.purchase_price * 100).toFixed(2);
+            const gainClass = gain >= 0 ? 'text-success' : 'text-danger';
+            return `<tr class="stock-row" data-stock='${JSON.stringify(item)}' data-id="${item.id}">
+                <td class="stock-editable" style="cursor:pointer;">${item.stock_name}</td>
+                <td class="stock-editable" style="cursor:pointer;">${item.symbol}</td>
+                <td class="stock-editable" style="cursor:pointer;">${item.quantity}</td>
+                <td class="stock-editable" style="cursor:pointer;">${formatCurrency(item.purchase_price)}</td>
+                <td class="stock-editable" style="cursor:pointer;">${formatCurrency(item.current_price)}</td>
+                <td class="stock-editable" style="cursor:pointer;">${formatCurrency(item.total_value)}</td>
+                <td class="stock-editable ${gainClass}" style="cursor:pointer;">${formatCurrency(gain)} (${gainPercent}%)</td>
+                <td><button class="btn btn-sm btn-danger stock-delete-btn" data-id="${item.id}">✕ Delete</button></td>
+            </tr>`;
+        }
+    },
+    PPF: {
+        apiEndpoint: 'ppf',
+        formId: 'ppfForm',
+        listId: 'ppfList',
+        editIdFieldId: 'ppfEditId',
+        addBtnId: 'ppfAddBtn',
+        updateBtnId: 'ppfUpdateBtn',
+        cancelBtnId: 'ppfCancelBtn',
+        contentTabId: 'ppf-content',
+        editableClass: 'ppf-editable',
+        deleteClass: 'ppf-delete-btn',
+        rowClass: 'ppf-row',
+        dataAttr: 'data-ppf',
+        tableHeaders: ['Account Number', 'Financial Year', 'Amount', 'Rate', 'Maturity Year', 'Actions'],
+        fields: {
+            'ppfAccount': 'account_number',
+            'ppfYear': 'financial_year',
+            'ppfAmount': 'amount',
+            'ppfRate': 'rate',
+            'ppfMaturityYear': 'maturity_year'
+        },
+        getFormData: () => ({
+            account_number: document.getElementById('ppfAccount').value,
+            financial_year: document.getElementById('ppfYear').value,
+            amount: parseFloat(document.getElementById('ppfAmount').value),
+            rate: parseFloat(document.getElementById('ppfRate').value),
+            maturity_year: parseInt(document.getElementById('ppfMaturityYear').value)
+        }),
+        populateForm: (data) => {
+            document.getElementById('ppfAccount').value = data.account_number;
+            document.getElementById('ppfYear').value = data.financial_year;
+            document.getElementById('ppfAmount').value = data.amount;
+            document.getElementById('ppfRate').value = data.rate;
+            document.getElementById('ppfMaturityYear').value = data.maturity_year;
+        },
+        formatRow: (item) => {
+            return `<tr class="ppf-row" data-ppf='${JSON.stringify(item)}' data-id="${item.id}">
+                <td class="ppf-editable" style="cursor:pointer;">${item.account_number}</td>
+                <td class="ppf-editable" style="cursor:pointer;">${item.financial_year}</td>
+                <td class="ppf-editable" style="cursor:pointer;">${formatCurrency(item.amount)}</td>
+                <td class="ppf-editable" style="cursor:pointer;">${item.rate}%</td>
+                <td class="ppf-editable" style="cursor:pointer;">${item.maturity_year}</td>
+                <td><button class="btn btn-sm btn-danger ppf-delete-btn" data-id="${item.id}">✕ Delete</button></td>
+            </tr>`;
+        }
+    }
+};
+
+// ============================================
+// COMMON GENERIC FUNCTIONS FOR ALL ASSETS
+// ============================================
+
+async function editAsset(assetType, id, data) {
+    const config = ASSET_TYPES[assetType];
+    config.populateForm(data);
+    document.getElementById(config.editIdFieldId).value = id;
+    document.getElementById(config.addBtnId).style.display = 'inline-block';
+    document.getElementById(config.updateBtnId).style.display = 'inline-block';
+    document.getElementById(config.cancelBtnId).style.display = 'inline-block';
+    document.querySelector(`#${config.contentTabId} form`).scrollIntoView({ behavior: 'smooth' });
+}
+
+function resetAssetForm(assetType) {
+    const config = ASSET_TYPES[assetType];
+    document.getElementById(config.formId).reset();
+    document.getElementById(config.editIdFieldId).value = '';
+    document.getElementById(config.addBtnId).style.display = 'inline-block';
+    document.getElementById(config.updateBtnId).style.display = 'none';
+    document.getElementById(config.cancelBtnId).style.display = 'none';
+}
+
+function resetAssetEditValue(assetType) {
+    const config = ASSET_TYPES[assetType];
+    document.getElementById(config.editIdFieldId).value = '';
+}
+
+async function deleteAsset(assetType, id) {
+    if (!confirm(`Are you sure you want to delete this ${assetType.toLowerCase()}?`)) {
+        return;
+    }
+    
+    try {
+        const config = ASSET_TYPES[assetType];
+        const response = await fetch(`${API_URL}/${config.apiEndpoint}/${id}`, {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            alert(`${assetType} deleted successfully!`);
+            loadAssets(assetType);
+            loadPortfolioSummary();
+        } else {
+            const errorData = await response.json();
+            alert('Error: ' + (errorData.error || `Error deleting ${assetType}`));
+        }
+    } catch (error) {
+        console.error(`Error deleting ${assetType}:`, error);
+        alert(`Error deleting ${assetType}: ` + error.message);
+    }
+}
+
+async function loadAssets(assetType) {
+    try {
+        const config = ASSET_TYPES[assetType];
+        console.log(`load${assetType}: Starting...`);
+        const response = await fetch(`${API_URL}/${config.apiEndpoint}`);
+        console.log(`load${assetType}: API response status:`, response.status);
+        
+        const items = await response.json();
+        console.log(`load${assetType}: Received items:`, items);
+        
+        let html = '<div class="card mt-3"><div class="card-body"><h5 class="card-title">' + assetType + ' List</h5>';
+        
+        if (!items || items.length === 0) {
+            console.log(`load${assetType}: No items found`);
+            html += `<p class="text-muted">No ${assetType.toLowerCase()}s added yet</p>`;
+        } else {
+            console.log(`load${assetType}: Found ${items.length} items`);
+            html += `<div class="table-responsive"><table class="table table-striped table-hover" id="${assetType}ListTable">`;
+            html += '<thead><tr>';
+            config.tableHeaders.forEach(h => html += `<th>${h}</th>`);
+            html += '</tr></thead><tbody>';
+            
+            items.forEach(item => {
+                html += config.formatRow(item);
+            });
+            
+            html += '</tbody></table></div>';
+        }
+        
+        html += '</div></div>';
+        const listEl = document.getElementById(config.listId);
+        console.log(`load${assetType}: listEl element:`, listEl);
+        
+        if (listEl) {
+            listEl.innerHTML = html;
+            console.log(`load${assetType}: HTML set successfully`);
+        } else {
+            console.error(`load${assetType}: listEl element not found!`);
+            return;
+        }
+        
+        // Add event listeners to editable cells
+        document.querySelectorAll(`.${config.editableClass}`).forEach(cell => {
+            cell.addEventListener('click', (e) => {
+                const row = e.target.closest('tr');
+                const itemData = JSON.parse(row.getAttribute(config.dataAttr));
+                editAsset(assetType, itemData.id, itemData);
+            });
+        });
+        
+        // Add event listeners to delete buttons
+        document.querySelectorAll(`.${config.deleteClass}`).forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const id = btn.getAttribute('data-id');
+                deleteAsset(assetType, id);
+            });
+        });
+        
+        console.log(`load${assetType}: Complete`);
+    } catch (error) {
+        console.error(`load${assetType}: Error -`, error);
+    }
+}
+
+// ============================================
+// FIXED DEPOSITS WRAPPER FUNCTIONS (backward compatibility)
+// ============================================
+
+async function editFixedDeposit(id, dep) {
+    await editAsset('FD', id, dep);
+}
+
+function resetFDForm() {
+    resetAssetForm('FD');
+}
+
+function resetFDEditValue() {
+    resetAssetEditValue('FD');
+}
+
+async function deleteFixedDeposit(id) {
+    await deleteAsset('FD', id);
+}
+
+async function loadFixedDeposits() {
+    await loadAssets('FD');
+}
+
+// Add form submit listener only if form exists
+const fdForm = document.getElementById('fdForm');
+if (fdForm) {
+    fdForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const editId = document.getElementById('fdEditId').value;
+        const config = ASSET_TYPES.FD;
+        const formData = config.getFormData();
         
         console.log('Submitting FD form - Edit ID:', editId, 'Data:', formData);
         
         try {
-            const url = editId ? `${API_URL}/fixed-deposits/${editId}` : `${API_URL}/fixed-deposits`;
+            const url = editId ? `${API_URL}/${config.apiEndpoint}/${editId}` : `${API_URL}/${config.apiEndpoint}`;
             const method = editId ? 'PUT' : 'POST';
             
             console.log(`Sending ${method} request to ${url}`);
@@ -477,138 +675,34 @@ if (fdCancelBtn) {
     fdCancelBtn.addEventListener('click', resetFDForm);
 }
 
-// Add event listener to cancel button only if it exists
+// Add event listener to add button only if it exists
 const fdAddBtn = document.getElementById('fdAddBtn');
 if (fdAddBtn) {
     fdAddBtn.addEventListener('click', resetFDEditValue);
 }
 
-// Mutual Funds Functions
+// ============================================
+// MUTUAL FUNDS WRAPPER FUNCTIONS
+// ============================================
+
 async function editMutualFund(id, fund) {
-    // Populate form with existing data
-    document.getElementById('mfEditId').value = id;
-    document.getElementById('mfName').value = fund.fund_name;
-    document.getElementById('mfUnits').value = fund.units;
-    document.getElementById('mfNAV').value = fund.nav;
-    document.getElementById('mfPurchase').value = fund.purchase_date;
-    
-    // Show update/cancel buttons, hide add button
-    document.getElementById('mfAddBtn').style.display = 'inline-block';
-    document.getElementById('mfUpdateBtn').style.display = 'inline-block';
-    document.getElementById('mfCancelBtn').style.display = 'inline-block';
-    
-    // Scroll to form
-    document.querySelector('#mf-content form').scrollIntoView({ behavior: 'smooth' });
+    await editAsset('MF', id, fund);
 }
 
 function resetMFForm() {
-    document.getElementById('mfForm').reset();
-    document.getElementById('mfEditId').value = '';
-    
-    // Show add button, hide update/cancel buttons
-    document.getElementById('mfAddBtn').style.display = 'inline-block';
-    document.getElementById('mfUpdateBtn').style.display = 'none';
-    document.getElementById('mfCancelBtn').style.display = 'none';
+    resetAssetForm('MF');
 }
 
 function resetMFEditValue() {
-    // Clear the hidden edit ID field to indicate we're adding a new MF
-    document.getElementById('mfEditId').value = '';
+    resetAssetEditValue('MF');
 }
 
 async function deleteMutualFund(id) {
-    if (!confirm('Are you sure you want to delete this mutual fund?')) {
-        return;
-    }
-    
-    try {
-        const response = await fetch(`${API_URL}/mutual-funds/${id}`, {
-            method: 'DELETE'
-        });
-        
-        if (response.ok) {
-            alert('Mutual fund deleted successfully!');
-            loadMutualFunds();
-            loadPortfolioSummary();
-        } else {
-            const errorData = await response.json();
-            alert('Error: ' + (errorData.error || 'Error deleting mutual fund'));
-        }
-    } catch (error) {
-        console.error('Error deleting mutual fund:', error);
-        alert('Error deleting mutual fund: ' + error.message);
-    }
+    await deleteAsset('MF', id);
 }
 
 async function loadMutualFunds() {
-    try {
-        console.log('loadMutualFunds: Starting...');
-        const response = await fetch(`${API_URL}/mutual-funds`);
-        console.log('loadMutualFunds: API response status:', response.status);
-        
-        const funds = await response.json();
-        console.log('loadMutualFunds: Received funds:', funds);
-        
-        let html = '<div class="card mt-3"><div class="card-body"><h5 class="card-title">Mutual Funds List</h5>';
-        
-        if (!funds || funds.length === 0) {
-            console.log('loadMutualFunds: No funds found');
-            html += '<p class="text-muted">No mutual funds added yet</p>';
-        } else {
-            console.log('loadMutualFunds: Found', funds.length, 'funds');
-            html += '<div class="table-responsive"><table class="table table-striped table-hover" id="mfListTable">';
-            html += '<thead><tr><th>Fund Name</th><th>Units</th><th>NAV</th><th>Total Value</th><th>Purchase Date</th><th>Actions</th></tr></thead><tbody>';
-            
-            funds.forEach(fund => {
-                html += `<tr class="mf-row" data-mf='${JSON.stringify(fund)}' data-id="${fund.id}">
-                    <td class="mf-editable" style="cursor:pointer;">${fund.fund_name}</td>
-                    <td class="mf-editable" style="cursor:pointer;">${fund.units}</td>
-                    <td class="mf-editable" style="cursor:pointer;">${formatCurrency(fund.nav)}</td>
-                    <td class="mf-editable" style="cursor:pointer;">${formatCurrency(fund.total_value)}</td>
-                    <td class="mf-editable" style="cursor:pointer;">${new Date(fund.purchase_date).toLocaleDateString('en-IN')}</td>
-                    <td>
-                        <button class="btn btn-sm btn-danger mf-delete-btn" data-id="${fund.id}">✕ Delete</button>
-                    </td>
-                </tr>`;
-            });
-            
-            html += '</tbody></table></div>';
-        }
-        
-        html += '</div></div>';
-        const mfListEl = document.getElementById('mfList');
-        console.log('loadMutualFunds: mfList element:', mfListEl);
-        
-        if (mfListEl) {
-            mfListEl.innerHTML = html;
-            console.log('loadMutualFunds: HTML set successfully');
-        } else {
-            console.error('loadMutualFunds: mfList element not found!');
-            return;
-        }
-        
-        // Add event listeners to editable cells
-        document.querySelectorAll('.mf-editable').forEach(cell => {
-            cell.addEventListener('click', (e) => {
-                const row = e.target.closest('tr');
-                const fundData = JSON.parse(row.dataset.mf);
-                editMutualFund(fundData.id, fundData);
-            });
-        });
-        
-        // Add event listeners to delete buttons
-        document.querySelectorAll('.mf-delete-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const id = btn.getAttribute('data-id');
-                deleteMutualFund(id);
-            });
-        });
-        
-        console.log('loadMutualFunds: Complete');
-    } catch (error) {
-        console.error('loadMutualFunds: Error -', error);
-    }
+    await loadAssets('MF');
 }
 
 // Add form submit listener for MF
@@ -618,17 +712,13 @@ if (mfForm) {
         e.preventDefault();
         
         const editId = document.getElementById('mfEditId').value;
-        const formData = {
-            fund_name: document.getElementById('mfName').value,
-            units: parseFloat(document.getElementById('mfUnits').value),
-            nav: parseFloat(document.getElementById('mfNAV').value),
-            purchase_date: document.getElementById('mfPurchase').value
-        };
+        const config = ASSET_TYPES.MF;
+        const formData = config.getFormData();
         
         console.log('Submitting MF form - Edit ID:', editId, 'Data:', formData);
         
         try {
-            const url = editId ? `${API_URL}/mutual-funds/${editId}` : `${API_URL}/mutual-funds`;
+            const url = editId ? `${API_URL}/${config.apiEndpoint}/${editId}` : `${API_URL}/${config.apiEndpoint}`;
             const method = editId ? 'PUT' : 'POST';
             
             console.log(`Sending ${method} request to ${url}`);
@@ -671,110 +761,93 @@ if (mfAddBtn) {
     mfAddBtn.addEventListener('click', resetMFEditValue);
 }
 
-// Stocks Functions
+// ============================================
+// STOCKS WRAPPER FUNCTIONS
+// ============================================
+
+async function editStock(id, stock) {
+    await editAsset('STOCK', id, stock);
+}
+
+function resetStockForm() {
+    resetAssetForm('STOCK');
+}
+
+function resetStockEditValue() {
+    resetAssetEditValue('STOCK');
+}
+
+async function deleteStock(id) {
+    await deleteAsset('STOCK', id);
+}
+
 async function loadStocks() {
-    try {
-        const response = await fetch(`${API_URL}/stocks`);
-        const stocks = await response.json();
-        
-        let html = '<div class="card mt-3"><div class="card-body"><h5 class="card-title">Stocks List</h5>';
-        
-        if (stocks.length === 0) {
-            html += '<p class="text-muted">No stocks added yet</p>';
-        } else {
-            html += '<div class="table-responsive"><table class="table table-striped">';
-            html += '<thead><tr><th>Stock</th><th>Symbol</th><th>Quantity</th><th>Avg Buy Price</th><th>Current Price</th><th>Total Value</th><th>Gain/Loss</th></tr></thead><tbody>';
-            
-            stocks.forEach(stock => {
-                const gain = (stock.current_price - stock.purchase_price) * stock.quantity;
-                const gainPercent = ((stock.current_price - stock.purchase_price) / stock.purchase_price * 100).toFixed(2);
-                const gainClass = gain >= 0 ? 'text-success' : 'text-danger';
-                
-                html += `<tr>
-                    <td>${stock.stock_name}</td>
-                    <td>${stock.symbol}</td>
-                    <td>${stock.quantity}</td>
-                    <td>${formatCurrency(stock.purchase_price)}</td>
-                    <td>${formatCurrency(stock.current_price)}</td>
-                    <td>${formatCurrency(stock.total_value)}</td>
-                    <td class="${gainClass}">${formatCurrency(gain)} (${gainPercent}%)</td>
-                </tr>`;
-            });
-            
-            html += '</tbody></table></div>';
-        }
-        
-        html += '</div></div>';
-        document.getElementById('stocksList').innerHTML = html;
-    } catch (error) {
-        console.error('Error loading stocks:', error);
-    }
+    await loadAssets('STOCK');
 }
 
 document.getElementById('stocksForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     
-    const formData = {
-        stock_name: document.getElementById('stockName').value,
-        symbol: document.getElementById('stockSymbol').value,
-        quantity: parseInt(document.getElementById('stockQty').value),
-        purchase_price: parseFloat(document.getElementById('stockPurchasePrice').value),
-        current_price: parseFloat(document.getElementById('stockCurrentPrice').value),
-        purchase_date: document.getElementById('stockPurchase').value
-    };
+    const editId = document.getElementById('stockEditId').value;
+    const config = ASSET_TYPES.STOCK;
+    const formData = config.getFormData();
     
     try {
-        const response = await fetch(`${API_URL}/stocks`, {
-            method: 'POST',
+        const url = editId ? `${API_URL}/${config.apiEndpoint}/${editId}` : `${API_URL}/${config.apiEndpoint}`;
+        const method = editId ? 'PUT' : 'POST';
+        
+        const response = await fetch(url, {
+            method: method,
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(formData)
         });
         
         if (response.ok) {
-            alert('Stock added successfully!');
-            document.getElementById('stocksForm').reset();
+            alert(editId ? 'Stock updated successfully!' : 'Stock added successfully!');
+            resetStockForm();
             loadStocks();
             loadPortfolioSummary();
         }
     } catch (error) {
-        console.error('Error adding stock:', error);
-        alert('Error adding stock');
+        console.error('Error saving stock:', error);
+        alert('Error saving stock');
     }
 });
 
-// RBI Bonds Functions
-async function loadRBIBonds() {
-    try {
-        const response = await fetch(`${API_URL}/rbi-bonds`);
-        const bonds = await response.json();
-        
-        let html = '<div class="card mt-3"><div class="card-body"><h5 class="card-title">RBI Bonds List</h5>';
-        
-        if (bonds.length === 0) {
-            html += '<p class="text-muted">No RBI bonds added yet</p>';
-        } else {
-            html += '<div class="table-responsive"><table class="table table-striped">';
-            html += '<thead><tr><th>Bond Type</th><th>Amount</th><th>Rate</th><th>Tenure</th><th>Purchase Date</th><th>Maturity Date</th></tr></thead><tbody>';
-            
-            bonds.forEach(bond => {
-                html += `<tr>
-                    <td>${bond.bond_type}</td>
-                    <td>${formatCurrency(bond.amount)}</td>
-                    <td>${bond.rate}%</td>
-                    <td>${bond.tenure_years} years</td>
-                    <td>${new Date(bond.purchase_date).toLocaleDateString('en-IN')}</td>
-                    <td>${new Date(bond.maturity_date).toLocaleDateString('en-IN')}</td>
-                </tr>`;
-            });
-            
-            html += '</tbody></table></div>';
-        }
-        
-        html += '</div></div>';
-        document.getElementById('bondsList').innerHTML = html;
-    } catch (error) {
-        console.error('Error loading RBI bonds:', error);
-    }
+// Setup Stock cancel button
+const stockCancelBtn = document.getElementById('stockCancelBtn');
+if (stockCancelBtn) {
+    stockCancelBtn.addEventListener('click', resetStockForm);
+}
+
+// Setup Stock add button
+const stockAddBtn = document.getElementById('stockAddBtn');
+if (stockAddBtn) {
+    stockAddBtn.addEventListener('click', resetStockEditValue);
+}
+
+// ============================================
+// PPF WRAPPER FUNCTIONS
+// ============================================
+
+async function editPPF(id, ppf) {
+    await editAsset('PPF', id, ppf);
+}
+
+function resetPPFForm() {
+    resetAssetForm('PPF');
+}
+
+function resetPPFEditValue() {
+    resetAssetEditValue('PPF');
+}
+
+async function deletePPF(id) {
+    await deleteAsset('PPF', id);
+}
+
+async function loadPPF() {
+    await loadAssets('PPF');
 }
 
 document.getElementById('bondsForm').addEventListener('submit', async (e) => {
@@ -809,68 +882,46 @@ document.getElementById('bondsForm').addEventListener('submit', async (e) => {
 });
 
 // PPF Functions
-async function loadPPF() {
-    try {
-        const response = await fetch(`${API_URL}/ppf`);
-        const ppfRecords = await response.json();
-        
-        let html = '<div class="card mt-3"><div class="card-body"><h5 class="card-title">PPF Contributions List</h5>';
-        
-        if (ppfRecords.length === 0) {
-            html += '<p class="text-muted">No PPF contributions added yet</p>';
-        } else {
-            html += '<div class="table-responsive"><table class="table table-striped">';
-            html += '<thead><tr><th>Account Number</th><th>Financial Year</th><th>Amount</th><th>Rate</th><th>Maturity Year</th></tr></thead><tbody>';
-            
-            ppfRecords.forEach(ppf => {
-                html += `<tr>
-                    <td>${ppf.account_number}</td>
-                    <td>${ppf.financial_year}</td>
-                    <td>${formatCurrency(ppf.amount)}</td>
-                    <td>${ppf.rate}%</td>
-                    <td>${ppf.maturity_year}</td>
-                </tr>`;
-            });
-            
-            html += '</tbody></table></div>';
-        }
-        
-        html += '</div></div>';
-        document.getElementById('ppfList').innerHTML = html;
-    } catch (error) {
-        console.error('Error loading PPF:', error);
-    }
-}
-
 document.getElementById('ppfForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     
-    const formData = {
-        account_number: document.getElementById('ppfAccount').value,
-        financial_year: document.getElementById('ppfYear').value,
-        amount: parseFloat(document.getElementById('ppfAmount').value),
-        rate: parseFloat(document.getElementById('ppfRate').value),
-        maturity_year: parseInt(document.getElementById('ppfMaturityYear').value)
-    };
+    const editId = document.getElementById('ppfEditId').value;
+    const config = ASSET_TYPES.PPF;
+    const formData = config.getFormData();
     
     try {
-        const response = await fetch(`${API_URL}/ppf`, {
-            method: 'POST',
+        const url = editId ? `${API_URL}/${config.apiEndpoint}/${editId}` : `${API_URL}/${config.apiEndpoint}`;
+        const method = editId ? 'PUT' : 'POST';
+        
+        const response = await fetch(url, {
+            method: method,
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(formData)
         });
         
         if (response.ok) {
-            alert('PPF contribution added successfully!');
-            document.getElementById('ppfForm').reset();
+            alert(editId ? 'PPF contribution updated successfully!' : 'PPF contribution added successfully!');
+            resetPPFForm();
             loadPPF();
             loadPortfolioSummary();
         }
     } catch (error) {
-        console.error('Error adding PPF contribution:', error);
-        alert('Error adding PPF contribution');
+        console.error('Error saving PPF contribution:', error);
+        alert('Error saving PPF contribution');
     }
 });
+
+// Setup PPF cancel button
+const ppfCancelBtn = document.getElementById('ppfCancelBtn');
+if (ppfCancelBtn) {
+    ppfCancelBtn.addEventListener('click', resetPPFForm);
+}
+
+// Setup PPF add button
+const ppfAddBtn = document.getElementById('ppfAddBtn');
+if (ppfAddBtn) {
+    ppfAddBtn.addEventListener('click', resetPPFEditValue);
+}
 
 
 // Initialize on page load

@@ -275,6 +275,49 @@ def add_stock():
     conn.close()
     return jsonify({'message': 'Stock added successfully'}), 201
 
+@app.route('/api/stocks/<int:stock_id>', methods=['PUT'])
+def update_stock(stock_id):
+    try:
+        data = request.json
+        total_value = data['quantity'] * data['current_price']
+        conn = get_db()
+        cursor = conn.cursor()
+        
+        # Check if record exists
+        cursor.execute('SELECT id FROM stocks WHERE id = ?', (stock_id,))
+        if not cursor.fetchone():
+            return jsonify({'error': 'Stock not found'}), 404
+        
+        cursor.execute('''
+            UPDATE stocks 
+            SET stock_name=?, symbol=?, quantity=?, purchase_price=?, current_price=?, total_value=?, purchase_date=?
+            WHERE id=?
+        ''', (data['stock_name'], data['symbol'], data['quantity'], data['purchase_price'], 
+              data['current_price'], total_value, data['purchase_date'], stock_id))
+        conn.commit()
+        conn.close()
+        return jsonify({'message': 'Stock updated successfully'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/stocks/<int:stock_id>', methods=['DELETE'])
+def delete_stock(stock_id):
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+        
+        # Check if record exists
+        cursor.execute('SELECT id FROM stocks WHERE id = ?', (stock_id,))
+        if not cursor.fetchone():
+            return jsonify({'error': 'Stock not found'}), 404
+        
+        cursor.execute('DELETE FROM stocks WHERE id = ?', (stock_id,))
+        conn.commit()
+        conn.close()
+        return jsonify({'message': 'Stock deleted successfully'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 # Routes for RBI Bonds
 @app.route('/api/rbi-bonds', methods=['GET'])
 def get_rbi_bonds():
@@ -321,6 +364,47 @@ def add_ppf():
     conn.commit()
     conn.close()
     return jsonify({'message': 'PPF record added successfully'}), 201
+
+@app.route('/api/ppf/<int:ppf_id>', methods=['PUT'])
+def update_ppf(ppf_id):
+    try:
+        data = request.json
+        conn = get_db()
+        cursor = conn.cursor()
+        
+        # Check if record exists
+        cursor.execute('SELECT id FROM ppf WHERE id = ?', (ppf_id,))
+        if not cursor.fetchone():
+            return jsonify({'error': 'PPF record not found'}), 404
+        
+        cursor.execute('''
+            UPDATE ppf 
+            SET account_number=?, financial_year=?, amount=?, rate=?, maturity_year=?
+            WHERE id=?
+        ''', (data['account_number'], data['financial_year'], data['amount'], data['rate'], data['maturity_year'], ppf_id))
+        conn.commit()
+        conn.close()
+        return jsonify({'message': 'PPF record updated successfully'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/ppf/<int:ppf_id>', methods=['DELETE'])
+def delete_ppf(ppf_id):
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+        
+        # Check if record exists
+        cursor.execute('SELECT id FROM ppf WHERE id = ?', (ppf_id,))
+        if not cursor.fetchone():
+            return jsonify({'error': 'PPF record not found'}), 404
+        
+        cursor.execute('DELETE FROM ppf WHERE id = ?', (ppf_id,))
+        conn.commit()
+        conn.close()
+        return jsonify({'message': 'PPF record deleted successfully'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 # Portfolio Summary
 @app.route('/api/portfolio-summary', methods=['GET'])
