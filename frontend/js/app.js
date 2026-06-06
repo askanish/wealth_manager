@@ -1040,6 +1040,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadStocks();
     loadRBIBonds();
     loadPPF();
+    updateInterestChange();
     
 
     // setInterval(() => {
@@ -1345,4 +1346,29 @@ function renderSnapshotsTable(snapshots) {
     `;
 
     container.innerHTML = html;
+}
+
+
+// Function to update input value when another input changes
+function updateInterestChange() {
+    // Get the input elements
+    const fdPrincipal = document.getElementById('fdPrincipal');
+    const fdMaturityAmt = document.getElementById('fdMaturityAmt');
+    const fdInterestAmt = document.getElementById('fdInterestAmt');
+    
+    fdPrincipal.addEventListener('input', function() {
+        if(fdMaturityAmt.value !== '' && fdMaturityAmt.value !== '0') {
+            fdInterestAmt.value = (parseFloat(fdMaturityAmt.value) - parseFloat(fdPrincipal.value)).toFixed(2);
+        }
+
+    });
+
+    fdMaturityAmt.addEventListener('input', function() {
+        if(fdPrincipal.value !== '' && fdPrincipal.value !== '0') {
+            fdInterestAmt.value = (parseFloat(fdMaturityAmt.value) - parseFloat(fdPrincipal.value)).toFixed(2);
+        }
+
+    });
+
+
 }

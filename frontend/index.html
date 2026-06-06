@@ -176,65 +176,66 @@
                                 <form id="fdForm">
                                     <input type="hidden" id="fdEditId" value="">
                                     <div class="row">
-                                        <div class="col-md-6">
+                                        <div class="col-md">
                                             <div class="mb-3">
-                                                <label for="fdBank" class="form-label">Bank Name</label>
-                                                <input type="text" class="form-control" id="fdBank" placeholder="e.g., HDFC Bank" required>
+                                                <!--<label for="fdBank" class="form-label">Bank Name</label>-->
+                                                <input type="text" class="form-control" id="fdBank" placeholder="Bank Name" required>
                                             </div>
                                         </div>
-                                        <div class="col-md-6">
+                                        <div class="col-md">
                                             <div class="mb-3">
-                                                <label for="fdCustId" class="form-label">Customer ID</label>
-                                                <input type="text" class="form-control" id="fdCustId" placeholder="e.g., CUST12345" required>
+                                                <!-- <label for="fdCustId" class="form-label">Customer ID</label> -->
+                                                <input type="text" class="form-control" id="fdCustId" placeholder="Customer ID" required>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md-6">
+                                        <div class="col-md">
                                             <div class="mb-3">
-                                                <label for="fdNumber" class="form-label">FD Number</label>
-                                                <input type="text" class="form-control" id="fdNumber" placeholder="e.g., FD0123456" required>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="mb-3">
-                                                <label for="fdPrincipal" class="form-label">Principal Amount (₹)</label>
-                                                <input type="number" class="form-control" id="fdPrincipal" placeholder="100000" step="0.01" required>
+                                                <!-- <label for="fdNumber" class="form-label">FD Number</label> -->
+                                                <input type="text" class="form-control" id="fdNumber" placeholder="FD Number" required>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="row">
-                                        <div class="col-md-6">
+                                        <div class="col-md">
                                             <div class="mb-3">
-                                                <label for="fdMaturityAmt" class="form-label">Maturity Amount (₹)</label>
-                                                <input type="number" class="form-control" id="fdMaturityAmt" placeholder="105000" step="0.01" required>
+                                                <!-- <label for="fdPrincipal" class="form-label">Principal Amount (₹)</label> -->
+                                                <input type="number" class="form-control" id="fdPrincipal" placeholder="Principal Amount (₹)" step="0.01" required>
                                             </div>
                                         </div>
-                                        <div class="col-md-6">
+                                        <div class="col-md">
                                             <div class="mb-3">
-                                                <label for="fdInterestAmt" class="form-label">Interest Amount (₹)</label>
-                                                <input type="number" class="form-control" id="fdInterestAmt" placeholder="5000" step="0.01" required>
+                                                <!-- <label for="fdMaturityAmt" class="form-label">Maturity Amount (₹)</label> -->
+                                                <input type="number" class="form-control" id="fdMaturityAmt" placeholder="Maturity Amount (₹)" step="0.01" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-md">
+                                            <div class="mb-3">
+                                                <!-- <label for="fdInterestAmt" class="form-label">Interest Amount (₹)</label> -->
+                                                <input type="number" class="form-control" id="fdInterestAmt" placeholder="Interest Amount (₹)" step="0.01" required>
+                                            </div>
+                                        </div>
+                                    <!-- </div>
+                                    <div class="row"> -->
+                                        <div class="col-md">
+                                            <div class="mb-3">
+                                                <!-- <label for="fdRate" class="form-label">Interest Rate (%)</label> -->
+                                                <input type="number" class="form-control" id="fdRate" placeholder="Interest Rate (%)" step="0.01" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-md">
+                                            <div class="mb-3">
+                                                <!-- <label for="fdTenure" class="form-label">Tenure (Months)</label> -->
+                                                <input type="number" class="form-control" id="fdTenure" placeholder="Tenure (Months)" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-md">
+                                            <div class="mb-3">
+                                                <!-- <label for="fdMaturity" class="form-label">Maturity Date</label> -->
+                                                <input type="date" class="form-control" id="fdMaturity" placeholder="Maturity Date" required>
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="mb-3">
-                                                <label for="fdRate" class="form-label">Interest Rate (%)</label>
-                                                <input type="number" class="form-control" id="fdRate" placeholder="5.5" step="0.01" required>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="mb-3">
-                                                <label for="fdTenure" class="form-label">Tenure (Months)</label>
-                                                <input type="number" class="form-control" id="fdTenure" placeholder="12" required>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="fdMaturity" class="form-label">Maturity Date</label>
-                                        <input type="date" class="form-control" id="fdMaturity" required>
-                                    </div>
+
                                     <div class="d-flex gap-2">
                                         <button type="submit" class="btn btn-primary" id="fdAddBtn">Add Fixed Deposit</button>
                                         <button type="submit" class="btn btn-success" id="fdUpdateBtn" style="display:none;">Update Fixed Deposit</button>
@@ -254,30 +255,30 @@
                                 <form id="mfForm">
                                     <input type="hidden" id="mfEditId" value="">
                                     <div class="row">
-                                        <div class="col-md-6">
+                                        <div class="col-md">
                                             <div class="mb-3">
-                                                <label for="mfName" class="form-label">Fund Name</label>
-                                                <input type="text" class="form-control" id="mfName" placeholder="e.g., HDFC Growth Fund" required>
+                                                <!-- <label for="mfName" class="form-label">Fund Name</label> -->
+                                                <input type="text" class="form-control" id="mfName" placeholder="Fund Name" required>
                                             </div>
                                         </div>
-                                        <div class="col-md-6">
+                                        <div class="col-md">
                                             <div class="mb-3">
-                                                <label for="mfUnits" class="form-label">Units</label>
-                                                <input type="number" class="form-control" id="mfUnits" placeholder="100" step="0.01" required>
+                                                <!-- <label for="mfUnits" class="form-label">Units</label> -->
+                                                <input type="number" class="form-control" id="mfUnits" placeholder="Units" step="0.01" required>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md-6">
+                                    <!-- </div>
+                                    <div class="row"> -->
+                                        <div class="col-md">
                                             <div class="mb-3">
-                                                <label for="mfNAV" class="form-label">NAV (₹)</label>
-                                                <input type="number" class="form-control" id="mfNAV" placeholder="500" step="0.01" required>
+                                                <!-- <label for="mfNAV" class="form-label">NAV (₹)</label> -->
+                                                <input type="number" class="form-control" id="mfNAV" placeholder="NAV (₹)" step="0.01" required>
                                             </div>
                                         </div>
-                                        <div class="col-md-6">
+                                        <div class="col-md">
                                             <div class="mb-3">
-                                                <label for="mfPurchase" class="form-label">Purchase Date</label>
-                                                <input type="date" class="form-control" id="mfPurchase" required>
+                                                <!-- <label for="mfPurchase" class="form-label">Purchase Date</label> -->
+                                                <input type="date" class="form-control" id="mfPurchase" placeholder="Purchase Date" required>
                                             </div>
                                         </div>
                                     </div>
@@ -300,44 +301,44 @@
                                 <form id="stocksForm">
                                     <input type="hidden" id="stockEditId" value="">
                                     <div class="row">
-                                        <div class="col-md-6">
+                                        <div class="col-md-3">
                                             <div class="mb-3">
-                                                <label for="stockName" class="form-label">Stock Name</label>
-                                                <input type="text" class="form-control" id="stockName" placeholder="e.g., Reliance Industries" required>
+                                                <!-- <label for="stockName" class="form-label">Stock Name</label> -->
+                                                <input type="text" class="form-control" id="stockName" placeholder="Stock Name" required>
                                             </div>
                                         </div>
-                                        <div class="col-md-6">
+                                        <div class="col-md-1">
                                             <div class="mb-3">
-                                                <label for="stockSymbol" class="form-label">Stock Symbol</label>
-                                                <input type="text" class="form-control" id="stockSymbol" placeholder="e.g., RELIANCE" required>
+                                                <!-- <label for="stockSymbol" class="form-label">Stock Symbol</label> -->
+                                                <input type="text" class="form-control" id="stockSymbol" placeholder="Symbol" required>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md-6">
+                                    <!-- </div>
+                                    <div class="row"> -->
+                                        <div class="col-md-1">
                                             <div class="mb-3">
-                                                <label for="stockQty" class="form-label">Quantity</label>
-                                                <input type="number" class="form-control" id="stockQty" placeholder="10" required>
+                                                <!-- <label for="stockQty" class="form-label">Quantity</label> -->
+                                                <input type="number" class="form-control" id="stockQty" placeholder="Quantity" required>
                                             </div>
                                         </div>
-                                        <div class="col-md-6">
+                                        <div class="col-md-2">
                                             <div class="mb-3">
-                                                <label for="stockPurchasePrice" class="form-label">Purchase Price (₹)</label>
-                                                <input type="number" class="form-control" id="stockPurchasePrice" placeholder="2500" step="0.01" required>
+                                                <!-- <label for="stockPurchasePrice" class="form-label">Purchase Price (₹)</label> -->
+                                                <input type="number" class="form-control" id="stockPurchasePrice" placeholder="Purchase Price (₹)" step="0.01" required>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md-6">
+                                    <!-- </div>
+                                    <div class="row"> -->
+                                        <div class="col-md-2">
                                             <div class="mb-3">
-                                                <label for="stockCurrentPrice" class="form-label">Current Price (₹)</label>
-                                                <input type="number" class="form-control" id="stockCurrentPrice" placeholder="2750" step="0.01" required>
+                                                <!-- <label for="stockCurrentPrice" class="form-label">Current Price (₹)</label> -->
+                                                <input type="number" class="form-control" id="stockCurrentPrice" placeholder="Current Price (₹)" step="0.01" required>
                                             </div>
                                         </div>
-                                        <div class="col-md-6">
+                                        <div class="col-md-3">
                                             <div class="mb-3">
-                                                <label for="stockPurchase" class="form-label">Purchase Date</label>
-                                                <input type="date" class="form-control" id="stockPurchase" required>
+                                                <!-- <label for="stockPurchase" class="form-label">Purchase Date</label> -->
+                                                <input type="date" class="form-control" id="stockPurchase" placeholder="Purchase Date" required>
                                             </div>
                                         </div>
                                     </div>
@@ -359,47 +360,55 @@
                                 <h5 class="card-title">Add RBI Bond</h5>
                                 <form id="bondsForm">
                                     <div class="row">
-                                        <div class="col-md-6">
+                                        <div class="col-md">
                                             <div class="mb-3">
-                                                <label for="bondType" class="form-label">Bond Type</label>
+                                                <!-- <label for="bondType" class="form-label">Bond Type</label> -->
                                                 <select class="form-select" id="bondType" required>
-                                                    <option>Sovereign Gold Bonds</option>
                                                     <option>RBI Floating Rate Bonds</option>
+                                                    <option>Sovereign Gold Bonds</option>
                                                     <option>RBI Taxable Bonds</option>
                                                 </select>
                                             </div>
                                         </div>
-                                        <div class="col-md-6">
+                                        <div class="col-md">
                                             <div class="mb-3">
-                                                <label for="bondAmount" class="form-label">Amount (₹)</label>
-                                                <input type="number" class="form-control" id="bondAmount" placeholder="50000" step="0.01" required>
+                                                <!-- <label for="bondAmount" class="form-label">Amount (₹)</label> -->
+                                                <input type="number" class="form-control" id="bondAmount" placeholder="Amount (₹)" step="0.01" required>
+                                            </div>
+                                        </div>
+                                    <!-- </div>
+                                    <div class="row"> -->
+                                        <div class="col-md">
+                                            <div class="mb-3">
+                                                <!-- <label for="bondRate" class="form-label">Interest Rate (%)</label> -->
+                                                <input type="number" class="form-control" id="bondRate" placeholder="Interest Rate (%)" step="0.01" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-md">
+                                            <div class="mb-3">
+                                                <!-- <label for="bondTenure" class="form-label">Tenure (Years)</label> -->
+                                                <input type="number" class="form-control" id="bondTenure" placeholder="Tenure (Years)" required>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="mb-3">
-                                                <label for="bondRate" class="form-label">Interest Rate (%)</label>
-                                                <input type="number" class="form-control" id="bondRate" placeholder="6.26" step="0.01" required>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="mb-3">
-                                                <label for="bondTenure" class="form-label">Tenure (Years)</label>
-                                                <input type="number" class="form-control" id="bondTenure" placeholder="7" required>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md-6">
+                                        <div class="col-md">
                                             <div class="mb-3">
                                                 <label for="bondPurchase" class="form-label">Purchase Date</label>
+                                                                                    </div>
+                                        </div>
+                                        <div class="col-md">
+                                            <div class="mb-3">
                                                 <input type="date" class="form-control" id="bondPurchase" required>
                                             </div>
                                         </div>
-                                        <div class="col-md-6">
+                                        <div class="col-md">
                                             <div class="mb-3">
                                                 <label for="bondMaturity" class="form-label">Maturity Date</label>
+                                                                                    </div>
+                                        </div>
+                                        <div class="col-md">
+                                            <div class="mb-3">
                                                 <input type="date" class="form-control" id="bondMaturity" required>
                                             </div>
                                         </div>
@@ -419,37 +428,40 @@
                                 <form id="ppfForm">
                                     <input type="hidden" id="ppfEditId" value="">
                                     <div class="row">
-                                        <div class="col-md-6">
+                                        <div class="col-md">
                                             <div class="mb-3">
-                                                <label for="ppfAccount" class="form-label">PPF Account Number</label>
-                                                <input type="text" class="form-control" id="ppfAccount" placeholder="123-4567-8901" required>
+                                                <!-- <label for="ppfAccount" class="form-label">PPF Account Number</label> -->
+                                                <input type="text" class="form-control" id="ppfAccount" placeholder="PPF Account Number" required>
                                             </div>
                                         </div>
-                                        <div class="col-md-6">
+                                        <div class="col-md">
                                             <div class="mb-3">
-                                                <label for="ppfYear" class="form-label">Financial Year</label>
-                                                <input type="text" class="form-control" id="ppfYear" placeholder="2024-25" required>
+                                                <!-- <label for="ppfYear" class="form-label">Financial Year</label> -->
+                                                <input type="text" class="form-control" id="ppfYear" placeholder="Financial Year (2XXX-XX)" required>
+                                            </div>
+                                        </div>
+                                    <!-- </div>
+                                    <div class="row"> -->
+                                        <div class="col-md">
+                                            <div class="mb-3">
+                                                <!-- <label for="ppfAmount" class="form-label">Contribution Amount (₹)</label> -->
+                                                <input type="number" class="form-control" id="ppfAmount" placeholder="Contribution Amount (₹)" step="0.01" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-md">
+                                            <div class="mb-3">
+                                                <!-- <label for="ppfRate" class="form-label">Interest Rate (%)</label> -->
+                                                <input type="number" class="form-control" id="ppfRate" placeholder="Interest Rate (%)" step="0.01" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-md">
+                                            <div class="mb-3">
+                                                <!-- <label for="ppfMaturityYear" class="form-label">Maturity Year</label> -->
+                                                <input type="number" class="form-control" id="ppfMaturityYear" placeholder="Maturity Year (2XXX)" required>
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="mb-3">
-                                                <label for="ppfAmount" class="form-label">Contribution Amount (₹)</label>
-                                                <input type="number" class="form-control" id="ppfAmount" placeholder="150000" step="0.01" required>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="mb-3">
-                                                <label for="ppfRate" class="form-label">Interest Rate (%)</label>
-                                                <input type="number" class="form-control" id="ppfRate" placeholder="7.1" step="0.01" required>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="ppfMaturityYear" class="form-label">Maturity Year</label>
-                                        <input type="number" class="form-control" id="ppfMaturityYear" placeholder="2033" required>
-                                    </div>
+
                                     <div class="d-flex gap-2">
                                         <button type="submit" class="btn btn-primary" id="ppfAddBtn">Add PPF Contribution</button>
                                         <button type="submit" class="btn btn-success" id="ppfUpdateBtn" style="display:none;">Update PPF Contribution</button>
