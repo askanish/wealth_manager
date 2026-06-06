@@ -7,9 +7,10 @@ A comprehensive Docker-based web application for tracking and managing your fina
 - **Fixed Deposits**: Track bank deposits with interest rates and maturity dates
 - **Mutual Funds**: Monitor fund investments with NAV tracking
 - **Stocks**: Keep track of stock holdings with current and purchase prices
-- **RBI Bonds**: Manage sovereign gold bonds and other RBI securities
+- **RBI Bonds**: Manage sovereign gold bonds, floating rate bonds, and RBI taxable bonds
 - **PPF**: Track Public Provident Fund contributions and maturity
-- **Portfolio Summary**: Real-time dashboard showing total asset values
+- **Portfolio Summary**: Live dashboard showing total asset values
+- **Charts**: Asset allocation and wealth distribution visualizations
 - **Responsive Design**: Works on desktop and mobile devices
 
 ## Wealth Manager Dashboard
@@ -53,7 +54,7 @@ wealth_manager/
 - **Features**:
   - Responsive Bootstrap UI
   - Tabbed interface for different asset types
-  - Real-time data refresh
+  - Live UI updates after adding or editing assets
   - Currency formatting for Indian Rupee (₹)
 
 ## Getting Started
@@ -121,9 +122,11 @@ The summary card at the top shows:
 - Total Fixed Deposits value
 - Total Mutual Funds value
 - Total Stocks value
+- Total RBI Bonds value
+- Total PPF value
 - **Total Portfolio Value** (sum of all assets)
 
-Data refreshes automatically every 5 seconds.
+Data refreshes on page load and immediately after adding or updating assets.
 
 ## API Endpoints
 
@@ -203,7 +206,6 @@ The application uses SQLite database stored in the `data/` volume. This ensures:
 
 - [ ] User authentication and accounts
 - [ ] Data export to CSV/PDF
-- [ ] Asset allocation pie charts
 - [ ] Performance analytics
 - [ ] Goal tracking
 - [ ] Recurring transactions
