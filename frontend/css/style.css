@@ -563,3 +563,80 @@ body {
         font-size: 0.85rem;
     }
 }
+
+/* ── Button Group and Snapshot Styles ────────────────────────────── */
+.button-group {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.btn-info {
+    background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+    border: none;
+    color: white;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-info:hover {
+    background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(6, 182, 212, 0.3);
+}
+
+.btn-info:active {
+    transform: translateY(0);
+}
+
+#snapshotBtn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+#snapshotBtn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Historical snapshots table styling */
+#snapshotsTableContainer {
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.table-header-row {
+    background: linear-gradient(135deg, var(--bg-surface-raised) 0%, var(--bg-surface) 100%);
+    font-weight: 600;
+    color: var(--text-primary);
+    border-bottom: 2px solid var(--border-strong);
+}
+
+.table tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background-color 0.2s ease;
+}
+
+.table tbody tr:hover {
+    background-color: var(--accent-soft);
+}
+
+.table td {
+    padding: 0.75rem 1rem;
+    vertical-align: middle;
+}
+
+/* Chart card enhancement */
+.chart-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s ease;
+}
+
+.chart-card:hover {
+    box-shadow: var(--shadow-md);
+    border-color: var(--accent);
+}

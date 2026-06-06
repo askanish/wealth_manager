@@ -435,6 +435,56 @@ const ASSET_TYPES = {
             </tr>`;
         }
     },
+    RBIBonds: {
+        apiEndpoint: 'rbi-bonds',
+        formId: 'bondsForm',
+        listId: 'bondsList',
+        editIdFieldId: 'bondsEditId',
+        addBtnId: 'bondsAddBtn',
+        updateBtnId: 'bondsUpdateBtn',
+        cancelBtnId: 'rbiCancelBtn',
+        contentTabId: 'bonds-content',
+        editableClass: 'bond-editable',
+        deleteClass: 'bond-delete-btn',
+        rowClass: 'bond-row',
+        dataAttr: 'data-bond',
+        tableHeaders: ['Bond Type', 'Amount', 'Rate', 'Tenure', 'Purchase Date', 'Maturity Date', 'Actions'],
+        fields: {
+            'bondType': 'bond_type',
+            'bondAmount': 'amount',
+            'bondRate': 'rate',
+            'bondTenure': 'tenure_years',
+            'bondPurchase': 'purchase_date',
+            'bondMaturity': 'maturity_date'
+        },
+        getFormData: () => ({
+            bond_type: document.getElementById('bondType').value,
+            amount: parseFloat(document.getElementById('bondAmount').value),
+            rate: parseFloat(document.getElementById('bondRate').value),
+            tenure_years: parseInt(document.getElementById('bondTenure').value),
+            purchase_date: document.getElementById('bondPurchase').value,
+            maturity_date: document.getElementById('bondMaturity').value
+        }),
+        populateForm: (data) => {
+            document.getElementById('bondType').value = data.bond_type;
+            document.getElementById('bondAmount').value = data.amount;
+            document.getElementById('bondRate').value = data.rate;
+            document.getElementById('bondTenure').value = data.tenure_years;
+            document.getElementById('bondPurchase').value = data.purchase_date;
+            document.getElementById('bondMaturity').value = data.maturity_date;
+        },
+        formatRow: (item) => {
+            return `<tr class="bond-row" data-bond='${JSON.stringify(item)}' data-id="${item.id}">
+                <td class="bond-editable" style="cursor:pointer;">${item.bond_type}</td>
+                <td class="bond-editable" style="cursor:pointer;">${formatCurrency(item.amount)}</td>
+                <td class="bond-editable" style="cursor:pointer;">${item.rate}%</td>
+                <td class="bond-editable" style="cursor:pointer;">${item.tenure_years} yrs</td>
+                <td class="bond-editable" style="cursor:pointer;">${new Date(item.purchase_date).toLocaleDateString('en-IN')}</td>
+                <td class="bond-editable" style="cursor:pointer;">${new Date(item.maturity_date).toLocaleDateString('en-IN')}</td>
+                <td><button class="btn btn-sm btn-danger bond-delete-btn" data-id="${item.id}">✕ Delete</button></td>
+            </tr>`;
+        }
+    },
     PPF: {
         apiEndpoint: 'ppf',
         formId: 'ppfForm',
@@ -490,11 +540,30 @@ const ASSET_TYPES = {
 async function editAsset(assetType, id, data) {
     const config = ASSET_TYPES[assetType];
     config.populateForm(data);
-    document.getElementById(config.editIdFieldId).value = id;
-    document.getElementById(config.addBtnId).style.display = 'inline-block';
-    document.getElementById(config.updateBtnId).style.display = 'inline-block';
-    document.getElementById(config.cancelBtnId).style.display = 'inline-block';
-    document.querySelector(`#${config.contentTabId} form`).scrollIntoView({ behavior: 'smooth' });
+    const editIdInput = document.getElementById(config.editIdFieldId);
+    if (editIdInput) {
+        editIdInput.value = id;
+    }
+
+    const addBtn = document.getElementById(config.addBtnId);
+    if (addBtn) {
+        addBtn.style.display = 'inline-block';
+    }
+
+    const updateBtn = document.getElementById(config.updateBtnId);
+    if (updateBtn) {
+        updateBtn.style.display = 'inline-block';
+    }
+
+    const cancelBtn = document.getElementById(config.cancelBtnId);
+    if (cancelBtn) {
+        cancelBtn.style.display = 'inline-block';
+    }
+
+    const formEl = document.querySelector(`#${config.contentTabId} form`);
+    if (formEl) {
+        formEl.scrollIntoView({ behavior: 'smooth' });
+    }
 }
 
 function resetAssetForm(assetType) {
@@ -850,37 +919,6 @@ async function loadPPF() {
     await loadAssets('PPF');
 }
 
-document.getElementById('bondsForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const formData = {
-        bond_type: document.getElementById('bondType').value,
-        amount: parseFloat(document.getElementById('bondAmount').value),
-        rate: parseFloat(document.getElementById('bondRate').value),
-        tenure_years: parseInt(document.getElementById('bondTenure').value),
-        purchase_date: document.getElementById('bondPurchase').value,
-        maturity_date: document.getElementById('bondMaturity').value
-    };
-    
-    try {
-        const response = await fetch(`${API_URL}/rbi-bonds`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(formData)
-        });
-        
-        if (response.ok) {
-            alert('RBI bond added successfully!');
-            document.getElementById('bondsForm').reset();
-            loadRBIBonds();
-            loadPortfolioSummary();
-        }
-    } catch (error) {
-        console.error('Error adding RBI bond:', error);
-        alert('Error adding RBI bond');
-    }
-});
-
 // PPF Functions
 document.getElementById('ppfForm').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -921,6 +959,74 @@ if (ppfCancelBtn) {
 const ppfAddBtn = document.getElementById('ppfAddBtn');
 if (ppfAddBtn) {
     ppfAddBtn.addEventListener('click', resetPPFEditValue);
+}
+
+
+// ============================================
+// RBIBonds WRAPPER FUNCTIONS
+// ============================================
+
+async function editRBIBonds(id, rbi) {
+    await editAsset('RBIBonds', id, rbi);
+}
+
+function resetRBIBondsForm() {
+    resetAssetForm('RBIBonds');
+}
+
+function resetRBIBondsEditValue() {
+    resetAssetEditValue('RBIBonds');
+}
+
+async function deleteRBIBonds(id) {
+    await deleteAsset('RBIBonds', id);
+}
+
+async function loadRBIBonds() {
+    await loadAssets('RBIBonds');
+}
+
+document.getElementById('bondsForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const formData = {
+        bond_type: document.getElementById('bondType').value,
+        amount: parseFloat(document.getElementById('bondAmount').value),
+        rate: parseFloat(document.getElementById('bondRate').value),
+        tenure_years: parseInt(document.getElementById('bondTenure').value),
+        purchase_date: document.getElementById('bondPurchase').value,
+        maturity_date: document.getElementById('bondMaturity').value
+    };
+    
+    try {
+        const response = await fetch(`${API_URL}/rbi-bonds`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+        });
+        
+        if (response.ok) {
+            alert('RBI bond added successfully!');
+            document.getElementById('bondsForm').reset();
+            loadRBIBonds();
+            loadPortfolioSummary();
+        }
+    } catch (error) {
+        console.error('Error adding RBI bond:', error);
+        alert('Error adding RBI bond');
+    }
+});
+
+// Setup RBIBonds cancel button
+const rbiCancelBtn = document.getElementById('rbiCancelBtn');
+if (rbiCancelBtn) {
+    rbiCancelBtn.addEventListener('click', resetRBIBondsForm);
+}
+
+// Setup RBIBonds add button
+const rbiAddBtn = document.getElementById('rbiAddBtn');
+if (rbiAddBtn) {
+    rbiAddBtn.addEventListener('click', resetRBIBondsEditValue);
 }
 
 
@@ -969,4 +1075,274 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // Snapshot Button Handler
+    const snapshotBtn = document.getElementById('snapshotBtn');
+    console.log('Snapshot button element:', snapshotBtn);
+    if (snapshotBtn) {
+        console.log('Attaching snapshot button listener');
+        snapshotBtn.addEventListener('click', recordSnapshot);
+    } else {
+        console.error('Snapshot button not found!');
+    }
+
+    // Load historical snapshots on page load
+    console.log('Loading historical snapshots on page init');
+    loadHistoricalSnapshots();
 });
+
+// Record a portfolio snapshot
+async function recordSnapshot() {
+    try {
+        console.log('Recording snapshot...');
+        const response = await fetch(`${API_URL}/portfolio-snapshot`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ snapshot_date: new Date().toISOString().split('T')[0] })
+        });
+
+        console.log('Snapshot response status:', response.status);
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(`Failed to record snapshot: ${response.status} ${JSON.stringify(errorData)}`);
+        }
+
+        const data = await response.json();
+        console.log('Snapshot recorded:', data);
+        alert(`✓ Snapshot recorded for ${data.snapshot_date}\nTotal Portfolio Value: ${formatCurrency(data.total_portfolio_value)}`);
+        
+        // Reload snapshots and chart
+        loadHistoricalSnapshots();
+    } catch (error) {
+        console.error('Error recording snapshot:', error);
+        alert(`Error recording snapshot: ${error.message}`);
+    }
+}
+
+// Load historical snapshots
+async function loadHistoricalSnapshots() {
+    try {
+        console.log('Loading historical snapshots...');
+        const response = await fetch(`${API_URL}/portfolio-snapshots`);
+        
+        console.log('Snapshots response status:', response.status);
+        
+        if (!response.ok) throw new Error('Failed to load snapshots');
+
+        const snapshots = await response.json();
+        console.log('Snapshots loaded successfully:', snapshots.length, 'snapshots');
+
+        // Render chart
+        renderHistoricalProgressChart(snapshots);
+
+        // Render table
+        renderSnapshotsTable(snapshots);
+    } catch (error) {
+        console.error('Error loading snapshots:', error);
+    }
+}
+
+// Render historical progress chart
+let historicalProgressChartInstance = null;
+
+function renderHistoricalProgressChart(snapshots) {
+    const ctx = document.getElementById('historicalProgressChart');
+    if (!ctx || snapshots.length === 0) {
+        console.log('Chart not rendered - ctx:', !!ctx, 'snapshots:', snapshots.length);
+        return;
+    }
+
+    console.log('Rendering chart with snapshots:', snapshots);
+
+    const dates = snapshots.map(s => {
+        // Parse date string in YYYY-MM-DD format
+        const [year, month, day] = s.snapshot_date.split('-');
+        const date = new Date(year, month - 1, day);
+        return date.toLocaleDateString('en-IN', { year: '2-digit', month: 'short', day: 'numeric' });
+    });
+
+    const totals = snapshots.map(s => s.total_portfolio_value);
+
+    const palette = getChartPalette();
+    const themeOpts = getChartThemeOptions();
+
+    // Helper function to add opacity to hex color
+    function hexToRgbA(hex, alpha) {
+        let r = parseInt(hex.slice(1, 3), 16);
+        let g = parseInt(hex.slice(3, 5), 16);
+        let b = parseInt(hex.slice(5, 7), 16);
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+
+    const fdColor = getThemeColor('--fd-color').trim();
+    console.log('FD Color:', fdColor);
+
+    const chartData = {
+        labels: dates,
+        datasets: [
+            {
+                label: 'Total Portfolio Value (₹)',
+                data: totals,
+                borderColor: fdColor,
+                backgroundColor: hexToRgbA(fdColor, 0.2),
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 5,
+                pointHoverRadius: 7,
+                pointBackgroundColor: fdColor,
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2
+            },
+            {
+                label: 'Fixed Deposits (₹)',
+                data: snapshots.map(s => s.fixed_deposits_total),
+                borderColor: getThemeColor('--fd-color'),
+                borderWidth: 1,
+                fill: false,
+                borderDash: [5, 5],
+                pointRadius: 3,
+                tension: 0.4
+            },
+            {
+                label: 'Mutual Funds (₹)',
+                data: snapshots.map(s => s.mutual_funds_total),
+                borderColor: getThemeColor('--mf-color'),
+                borderWidth: 1,
+                fill: false,
+                borderDash: [5, 5],
+                pointRadius: 3,
+                tension: 0.4
+            },
+            {
+                label: 'Stocks (₹)',
+                data: snapshots.map(s => s.stocks_total),
+                borderColor: getThemeColor('--stocks-color'),
+                borderWidth: 1,
+                fill: false,
+                borderDash: [5, 5],
+                pointRadius: 3,
+                tension: 0.4
+            },
+            {
+                label: 'RBI Bonds (₹)',
+                data: snapshots.map(s => s.rbi_bonds_total),
+                borderColor: getThemeColor('--bonds-color'),
+                borderWidth: 1,
+                fill: false,
+                borderDash: [5, 5],
+                pointRadius: 3,
+                tension: 0.4
+            },
+            {
+                label: 'PPF (₹)',
+                data: snapshots.map(s => s.ppf_total),
+                borderColor: getThemeColor('--ppf-color'),
+                borderWidth: 1,
+                fill: false,
+                borderDash: [5, 5],
+                pointRadius: 3,
+                tension: 0.4
+            }
+        ]
+    };
+
+    console.log('Chart data created:', chartData.labels, chartData.datasets[0].data);
+
+    if (historicalProgressChartInstance) {
+        console.log('Updating existing chart instance');
+        historicalProgressChartInstance.data = chartData;
+        historicalProgressChartInstance.update();
+    } else {
+        console.log('Creating new chart instance');
+        historicalProgressChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: chartData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: {
+                        ...themeOpts.plugins.legend,
+                        position: 'bottom'
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        padding: 12,
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + formatCurrency(context.parsed.y);
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: themeOpts.scales.x,
+                    y: {
+                        ...themeOpts.scales.y,
+                        beginAtZero: true,
+                        ticks: {
+                            ...themeOpts.scales.y.ticks,
+                            callback: function(value) {
+                                return '₹' + (value / 100000).toFixed(1) + 'L';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+}
+
+// Render snapshots table
+function renderSnapshotsTable(snapshots) {
+    const container = document.getElementById('snapshotsTableContainer');
+    if (!container) return;
+
+    if (snapshots.length === 0) {
+        container.innerHTML = '<p class="text-muted">No snapshots recorded yet. Click "Take Snapshot" to start tracking your portfolio growth.</p>';
+        return;
+    }
+
+    let html = `
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr class="table-header-row">
+                    <th>Date</th>
+                    <th>Fixed Deposits</th>
+                    <th>Mutual Funds</th>
+                    <th>Stocks</th>
+                    <th>RBI Bonds</th>
+                    <th>PPF</th>
+                    <th>Total Portfolio</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    snapshots.forEach(snapshot => {
+        const date = new Date(snapshot.snapshot_date).toLocaleDateString('en-IN');
+        html += `
+            <tr>
+                <td>${date}</td>
+                <td>${formatCurrency(snapshot.fixed_deposits_total)}</td>
+                <td>${formatCurrency(snapshot.mutual_funds_total)}</td>
+                <td>${formatCurrency(snapshot.stocks_total)}</td>
+                <td>${formatCurrency(snapshot.rbi_bonds_total)}</td>
+                <td>${formatCurrency(snapshot.ppf_total)}</td>
+                <td><strong>${formatCurrency(snapshot.total_portfolio_value)}</strong></td>
+            </tr>
+        `;
+    });
+
+    html += `
+            </tbody>
+        </table>
+    `;
+
+    container.innerHTML = html;
+}

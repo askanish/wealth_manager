@@ -115,11 +115,16 @@
                                 </div>
                             </div>
 
-                            <!-- Download Button -->
+                            <!-- Download Button and Snapshot Button -->
                             <div class="col-12 mb-4">
-                                <button id="downloadExcelBtn" class="btn btn-success btn-lg">
-                                    <i class="bi bi-download"></i> 📊 Download Excel Report
-                                </button>
+                                <div class="button-group">
+                                    <button id="downloadExcelBtn" class="btn btn-success btn-lg">
+                                        <i class="bi bi-download"></i> 📊 Download Excel Report
+                                    </button>
+                                    <button id="snapshotBtn" class="btn btn-info btn-lg" title="Take a snapshot of current portfolio totals">
+                                        <i class="bi bi-camera"></i> 📸 Take Snapshot
+                                    </button>
+                                </div>
                             </div>
 
                             <!-- Charts -->
@@ -137,6 +142,28 @@
                                     <div class="card-body">
                                         <h5 class="card-title">Asset Allocation</h5>
                                         <canvas id="assetAllocationChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Historical Progress Chart -->
+                            <div class="col-12 mb-4">
+                                <div class="card chart-card">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Portfolio Growth Over Time</h5>
+                                        <canvas id="historicalProgressChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Historical Snapshots Table -->
+                            <div class="col-12 mb-4">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Snapshot History</h5>
+                                        <div class="table-responsive" id="snapshotsTableContainer">
+                                            <p class="text-muted">No snapshots recorded yet. Click "Take Snapshot" to start tracking your portfolio growth.</p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

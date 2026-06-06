@@ -117,6 +117,21 @@ def init_db():
         )
     ''')
     
+    # Portfolio Snapshots table - for tracking historical data
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS portfolio_snapshots (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            snapshot_date TEXT NOT NULL,
+            fixed_deposits_total REAL NOT NULL,
+            mutual_funds_total REAL NOT NULL,
+            stocks_total REAL NOT NULL,
+            rbi_bonds_total REAL NOT NULL,
+            ppf_total REAL NOT NULL,
+            total_portfolio_value REAL NOT NULL,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    
     conn.commit()
     conn.close()
 
@@ -443,6 +458,72 @@ def get_portfolio_summary():
 def health_check():
     return jsonify({'status': 'Backend is running', 'timestamp': datetime.now().isoformat()})
 
+# Portfolio Snapshots
+@app.route('/api/portfolio-snapshot', methods=['POST'])
+def record_portfolio_snapshot():
+    """Record a snapshot of the current portfolio totals"""
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+        
+        # Get current totals
+        cursor.execute('SELECT SUM(principal) as total FROM fixed_deposits')
+        fd_total = cursor.fetchone()['total'] or 0
+        
+        cursor.execute('SELECT SUM(total_value) as total FROM mutual_funds')
+        mf_total = cursor.fetchone()['total'] or 0
+        
+        cursor.execute('SELECT SUM(total_value) as total FROM stocks')
+        stocks_total = cursor.fetchone()['total'] or 0
+        
+        cursor.execute('SELECT SUM(amount) as total FROM rbi_bonds')
+        bonds_total = cursor.fetchone()['total'] or 0
+        
+        cursor.execute('SELECT SUM(amount) as total FROM ppf')
+        ppf_total = cursor.fetchone()['total'] or 0
+        
+        total_portfolio = fd_total + mf_total + stocks_total + bonds_total + ppf_total
+        
+        # Get snapshot date from request or use today
+        data = request.json or {}
+        snapshot_date = data.get('snapshot_date', datetime.now().strftime('%Y-%m-%d'))
+        
+        # Insert snapshot
+        cursor.execute('''
+            INSERT INTO portfolio_snapshots 
+            (snapshot_date, fixed_deposits_total, mutual_funds_total, stocks_total, rbi_bonds_total, ppf_total, total_portfolio_value)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        ''', (snapshot_date, fd_total, mf_total, stocks_total, bonds_total, ppf_total, total_portfolio))
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({
+            'message': 'Snapshot recorded successfully',
+            'snapshot_date': snapshot_date,
+            'total_portfolio_value': total_portfolio
+        }), 201
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/portfolio-snapshots', methods=['GET'])
+def get_portfolio_snapshots():
+    """Get all portfolio snapshots ordered by date"""
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            SELECT * FROM portfolio_snapshots 
+            ORDER BY snapshot_date ASC
+        ''')
+        snapshots = [dict(row) for row in cursor.fetchall()]
+        conn.close()
+        
+        return jsonify(snapshots), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 # Excel Export Endpoint
 def create_styled_header(ws, row, headers):
     """Create a styled header row in the worksheet"""
@@ -593,6 +674,42 @@ def export_excel():
         create_styled_header(ws_ppf, 1, headers)
         add_data_rows(ws_ppf, 2, ppf_data, headers)
         adjust_column_widths(ws_ppf)
+    
+    # Historical Data Sheet
+    cursor.execute('SELECT * FROM portfolio_snapshots ORDER BY snapshot_date ASC')
+    snapshots_data = [dict(row) for row in cursor.fetchall()]
+    if snapshots_data:
+        ws_history = wb.create_sheet("Historical Data")
+        headers = ["Snapshot Date", "Fixed Deposits", "Mutual Funds", "Stocks", "RBI Bonds", "PPF", "Total Portfolio Value"]
+        create_styled_header(ws_history, 1, headers)
+        
+        for row_idx, snapshot in enumerate(snapshots_data, 2):
+            ws_history.cell(row=row_idx, column=1).value = snapshot['snapshot_date']
+            ws_history.cell(row=row_idx, column=2).value = snapshot['fixed_deposits_total']
+            ws_history.cell(row=row_idx, column=3).value = snapshot['mutual_funds_total']
+            ws_history.cell(row=row_idx, column=4).value = snapshot['stocks_total']
+            ws_history.cell(row=row_idx, column=5).value = snapshot['rbi_bonds_total']
+            ws_history.cell(row=row_idx, column=6).value = snapshot['ppf_total']
+            ws_history.cell(row=row_idx, column=7).value = snapshot['total_portfolio_value']
+            
+            border = Border(
+                left=Side(style='thin'),
+                right=Side(style='thin'),
+                top=Side(style='thin'),
+                bottom=Side(style='thin')
+            )
+            
+            for col in range(1, 8):
+                cell = ws_history.cell(row=row_idx, column=col)
+                cell.border = border
+                if col > 1:  # Currency columns
+                    cell.alignment = Alignment(horizontal="right")
+                    if isinstance(cell.value, (int, float)):
+                        cell.number_format = '#,##0.00'
+                else:
+                    cell.alignment = Alignment(horizontal="left")
+        
+        adjust_column_widths(ws_history)
     
     conn.close()
     
