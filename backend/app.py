@@ -524,6 +524,24 @@ def get_portfolio_snapshots():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/portfolio-snapshots/<int:portfolio_id>', methods=['DELETE'])
+def delete_portfolio_snapshot(portfolio_id):
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+        
+        # Check if record exists
+        cursor.execute('SELECT id FROM portfolio_snapshots WHERE id = ?', (portfolio_id,))
+        if not cursor.fetchone():
+            return jsonify({'error': 'Portfolio snapshot not found'}), 404
+        
+        cursor.execute('DELETE FROM portfolio_snapshots WHERE id = ?', (portfolio_id,))
+        conn.commit()
+        conn.close()
+        return jsonify({'message': 'Portfolio snapshot deleted successfully'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 # Excel Export Endpoint
 def create_styled_header(ws, row, headers):
     """Create a styled header row in the worksheet"""

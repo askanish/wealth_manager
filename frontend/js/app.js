@@ -1320,6 +1320,7 @@ function renderSnapshotsTable(snapshots) {
                     <th>RBI Bonds</th>
                     <th>PPF</th>
                     <th>Total Portfolio</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -1336,6 +1337,7 @@ function renderSnapshotsTable(snapshots) {
                 <td>${formatCurrency(snapshot.rbi_bonds_total)}</td>
                 <td>${formatCurrency(snapshot.ppf_total)}</td>
                 <td><strong>${formatCurrency(snapshot.total_portfolio_value)}</strong></td>
+                <td><button class="btn btn-sm btn-danger portfolio-delete-btn" data-id="${snapshot.id}">✕ Delete</button></td>
             </tr>
         `;
     });
@@ -1346,6 +1348,35 @@ function renderSnapshotsTable(snapshots) {
     `;
 
     container.innerHTML = html;
+
+    const deleteButtons = container.querySelectorAll('.portfolio-delete-btn');
+    deleteButtons.forEach(btn => {
+        btn.addEventListener('click', async (event) => {
+            const snapshotId = event.currentTarget.getAttribute('data-id');
+            if (!snapshotId) return;
+
+            if (!confirm('Are you sure you want to delete this portfolio snapshot?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/portfolio-snapshots/${snapshotId}`, {
+                    method: 'DELETE'
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to delete snapshot');
+                }
+
+                alert('Snapshot deleted successfully');
+                loadHistoricalSnapshots();
+            } catch (error) {
+                console.error('Error deleting portfolio snapshot:', error);
+                alert(`Error deleting portfolio snapshot: ${error.message}`);
+            }
+        });
+    });
 }
 
 
