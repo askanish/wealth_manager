@@ -4,7 +4,7 @@ import sqlite3
 import os
 import json
 from datetime import datetime
-from openpyxl import Workbook
+from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from io import BytesIO
 
@@ -742,6 +742,175 @@ def export_excel():
         as_attachment=True,
         download_name=f'Wealth_Manager_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx'
     )
+
+
+@app.route('/api/import-excel', methods=['POST'])
+def import_excel():
+    """Import data from an Excel file (same format as export) and replace current data."""
+    file = request.files.get('file')
+    if not file:
+        return jsonify({'error': 'No file uploaded'}), 400
+
+    try:
+        wb = load_workbook(filename=BytesIO(file.read()), data_only=True)
+        conn = get_db()
+        cursor = conn.cursor()
+
+        def safe_float(v):
+            try:
+                return float(v) if v is not None and v != '' else 0
+            except:
+                return 0
+
+        def safe_int(v):
+            try:
+                return int(v) if v is not None and v != '' else 0
+            except:
+                return 0
+
+        # Fixed Deposits
+        if 'Fixed Deposits' in wb.sheetnames:
+            ws = wb['Fixed Deposits']
+            rows = list(ws.values)
+            if len(rows) > 1:
+                headers = [str(h).strip() for h in rows[0]]
+                cursor.execute('DELETE FROM fixed_deposits')
+                for row in rows[1:]:
+                    row_dict = dict(zip(headers, row))
+                    cursor.execute('''
+                        INSERT INTO fixed_deposits (bank_name, cust_id, fd_number, principal, maturity_amt, interest_amt, rate, tenure_months, maturity_date)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ''', (
+                        row_dict.get('bank_name'),
+                        row_dict.get('cust_id'),
+                        row_dict.get('fd_number'),
+                        safe_float(row_dict.get('principal')),
+                        safe_float(row_dict.get('maturity_amt')),
+                        safe_float(row_dict.get('interest_amt')),
+                        safe_float(row_dict.get('rate')),
+                        safe_int(row_dict.get('tenure_months')),
+                        row_dict.get('maturity_date') or ''
+                    ))
+
+        # Mutual Funds
+        if 'Mutual Funds' in wb.sheetnames:
+            ws = wb['Mutual Funds']
+            rows = list(ws.values)
+            if len(rows) > 1:
+                headers = [str(h).strip() for h in rows[0]]
+                cursor.execute('DELETE FROM mutual_funds')
+                for row in rows[1:]:
+                    row_dict = dict(zip(headers, row))
+                    cursor.execute('''
+                        INSERT INTO mutual_funds (fund_name, units, nav, total_value, purchase_date)
+                        VALUES (?, ?, ?, ?, ?)
+                    ''', (
+                        row_dict.get('fund_name'),
+                        safe_float(row_dict.get('units')),
+                        safe_float(row_dict.get('nav')),
+                        safe_float(row_dict.get('total_value')),
+                        row_dict.get('purchase_date') or ''
+                    ))
+
+        # Stocks
+        if 'Stocks' in wb.sheetnames:
+            ws = wb['Stocks']
+            rows = list(ws.values)
+            if len(rows) > 1:
+                headers = [str(h).strip() for h in rows[0]]
+                cursor.execute('DELETE FROM stocks')
+                for row in rows[1:]:
+                    row_dict = dict(zip(headers, row))
+                    cursor.execute('''
+                        INSERT INTO stocks (stock_name, symbol, quantity, purchase_price, current_price, total_value, purchase_date)
+                        VALUES (?, ?, ?, ?, ?, ?, ?)
+                    ''', (
+                        row_dict.get('stock_name'),
+                        row_dict.get('symbol'),
+                        safe_int(row_dict.get('quantity')),
+                        safe_float(row_dict.get('purchase_price')),
+                        safe_float(row_dict.get('current_price')),
+                        safe_float(row_dict.get('total_value')),
+                        row_dict.get('purchase_date') or ''
+                    ))
+
+        # RBI Bonds
+        if 'RBI Bonds' in wb.sheetnames:
+            ws = wb['RBI Bonds']
+            rows = list(ws.values)
+            if len(rows) > 1:
+                headers = [str(h).strip() for h in rows[0]]
+                cursor.execute('DELETE FROM rbi_bonds')
+                for row in rows[1:]:
+                    row_dict = dict(zip(headers, row))
+                    cursor.execute('''
+                        INSERT INTO rbi_bonds (bond_type, amount, rate, tenure_years, maturity_date, purchase_date)
+                        VALUES (?, ?, ?, ?, ?, ?)
+                    ''', (
+                        row_dict.get('bond_type') or row_dict.get('bondType') or row_dict.get('Bond Type'),
+                        safe_float(row_dict.get('amount')),
+                        safe_float(row_dict.get('rate')),
+                        safe_int(row_dict.get('tenure_years')),
+                        row_dict.get('maturity_date') or row_dict.get('Maturity Date') or '',
+                        row_dict.get('purchase_date') or row_dict.get('Purchase Date') or ''
+                    ))
+
+        # PPF
+        if 'PPF' in wb.sheetnames:
+            ws = wb['PPF']
+            rows = list(ws.values)
+            if len(rows) > 1:
+                headers = [str(h).strip() for h in rows[0]]
+                cursor.execute('DELETE FROM ppf')
+                for row in rows[1:]:
+                    row_dict = dict(zip(headers, row))
+                    cursor.execute('''
+                        INSERT INTO ppf (account_number, financial_year, amount, rate, maturity_year)
+                        VALUES (?, ?, ?, ?, ?)
+                    ''', (
+                        row_dict.get('account_number') or row_dict.get('Account Number'),
+                        row_dict.get('financial_year') or row_dict.get('Financial Year'),
+                        safe_float(row_dict.get('amount')),
+                        safe_float(row_dict.get('rate')),
+                        safe_int(row_dict.get('maturity_year'))
+                    ))
+
+        # Historical Data (portfolio_snapshots)
+        if 'Historical Data' in wb.sheetnames:
+            ws = wb['Historical Data']
+            rows = list(ws.values)
+            if len(rows) > 1:
+                # headers expected: Snapshot Date, Fixed Deposits, Mutual Funds, Stocks, RBI Bonds, PPF, Total Portfolio Value
+                cursor.execute('DELETE FROM portfolio_snapshots')
+                for row in rows[1:]:
+                    # row[0] snapshot_date, row[1] fd, row[2] mf, row[3] stocks, row[4] bonds, row[5] ppf, row[6] total
+                    snapshot_date = None
+                    if row[0] is not None:
+                        if hasattr(row[0], 'strftime'):
+                            snapshot_date = row[0].strftime('%Y-%m-%d')
+                        else:
+                            snapshot_date = str(row[0])
+                    else:
+                        snapshot_date = datetime.now().strftime('%Y-%m-%d')
+
+                    fd_total = safe_float(row[1])
+                    mf_total = safe_float(row[2])
+                    stocks_total = safe_float(row[3])
+                    bonds_total = safe_float(row[4])
+                    ppf_total = safe_float(row[5])
+                    total_portfolio = safe_float(row[6])
+
+                    cursor.execute('''
+                        INSERT INTO portfolio_snapshots (snapshot_date, fixed_deposits_total, mutual_funds_total, stocks_total, rbi_bonds_total, ppf_total, total_portfolio_value)
+                        VALUES (?, ?, ?, ?, ?, ?, ?)
+                    ''', (snapshot_date, fd_total, mf_total, stocks_total, bonds_total, ppf_total, total_portfolio))
+
+        conn.commit()
+        conn.close()
+
+        return jsonify({'message': 'Import successful'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     init_db()

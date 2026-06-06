@@ -1077,6 +1077,56 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Upload Excel Handler
+    const uploadInput = document.getElementById('uploadExcelInput');
+    const uploadBtn = document.getElementById('uploadExcelBtn');
+    if (uploadBtn && uploadInput) {
+        uploadBtn.addEventListener('click', async () => {
+            const file = uploadInput.files && uploadInput.files[0];
+            if (!file) {
+                alert('Please choose an .xlsx file to upload');
+                return;
+            }
+
+            if (!confirm('This will replace current data with contents from the uploaded Excel file. Continue?')) return;
+
+            try {
+                uploadBtn.disabled = true;
+                uploadBtn.textContent = 'Uploading...';
+
+                const formData = new FormData();
+                formData.append('file', file);
+
+                const response = await fetch(`${API_URL}/import-excel`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.error || 'Import failed');
+                }
+
+                alert('Import successful');
+
+                // Refresh all data views
+                loadFixedDeposits();
+                loadMutualFunds();
+                loadStocks();
+                loadRBIBonds();
+                loadPPF();
+                loadHistoricalSnapshots();
+                loadPortfolioSummary();
+            } catch (error) {
+                console.error('Error importing Excel:', error);
+                alert('Error importing Excel: ' + error.message);
+            } finally {
+                uploadBtn.disabled = false;
+                uploadBtn.textContent = '⬆️ Upload Excel';
+            }
+        });
+    }
+
     // Snapshot Button Handler
     const snapshotBtn = document.getElementById('snapshotBtn');
     console.log('Snapshot button element:', snapshotBtn);
