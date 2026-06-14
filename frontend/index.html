@@ -363,15 +363,24 @@
                             <div class="card-body">
                                 <h5 class="card-title">Add RBI Bond</h5>
                                 <form id="bondsForm">
+                                    <input type="hidden" id="bondsEditId" value="">
                                     <div class="row">
                                         <div class="col-md">
                                             <div class="mb-3">
                                                 <!-- <label for="bondType" class="form-label">Bond Type</label> -->
+                                                <input type="text" class="form-control" id="bondType" placeholder="Bond Name" required>
+<!-- 
                                                 <select class="form-select" id="bondType" required>
                                                     <option>RBI Floating Rate Bonds</option>
                                                     <option>Sovereign Gold Bonds</option>
                                                     <option>RBI Taxable Bonds</option>
-                                                </select>
+                                                </select> -->
+                                            </div>
+                                        </div>
+                                        <div class="col-md">
+                                            <div class="mb-3">
+                                                <!-- <label for="bondAmount" class="form-label">Amount (₹)</label> -->
+                                                <input type="text" class="form-control" id="bondNumber" placeholder="Bond Number" required>
                                             </div>
                                         </div>
                                         <div class="col-md">
@@ -388,36 +397,42 @@
                                                 <input type="number" class="form-control" id="bondRate" placeholder="Interest Rate (%)" step="0.01" required>
                                             </div>
                                         </div>
+                                    </div>
+                                    <div class="row">
                                         <div class="col-md">
                                             <div class="mb-3">
                                                 <!-- <label for="bondTenure" class="form-label">Tenure (Years)</label> -->
                                                 <input type="number" class="form-control" id="bondTenure" placeholder="Tenure (Years)" required>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md">
+                                    <!-- </div>
+                                    <div class="row"> -->
+                                        <!-- <div class="col-md">
                                             <div class="mb-3">
                                                 <label for="bondPurchase" class="form-label">Purchase Date</label>
                                                                                     </div>
-                                        </div>
+                                        </div> -->
                                         <div class="col-md">
                                             <div class="mb-3">
                                                 <input type="date" class="form-control" id="bondPurchase" required>
                                             </div>
                                         </div>
-                                        <div class="col-md">
+                                        <!-- <div class="col-md">
                                             <div class="mb-3">
                                                 <label for="bondMaturity" class="form-label">Maturity Date</label>
                                                                                     </div>
-                                        </div>
+                                        </div>-->
                                         <div class="col-md">
                                             <div class="mb-3">
                                                 <input type="date" class="form-control" id="bondMaturity" required>
                                             </div>
-                                        </div>
+                                        </div> 
                                     </div>
-                                    <button type="submit" class="btn btn-primary">Add RBI Bond</button>
+                                    <div class="d-flex gap-2">
+                                        <button type="submit" class="btn btn-primary" id="bondsAddBtn">Add RBI Bond</button>
+                                        <button type="submit" class="btn btn-success" id="bondsUpdateBtn" style="display:none;">Update RBI Bond</button>
+                                        <button type="button" class="btn btn-secondary" id="rbiCancelBtn" style="display:none;" onclick="resetRBIBondsForm()">Cancel Edit</button>
+                                    </div>
                                 </form>
                             </div>
                         </div>

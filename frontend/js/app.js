@@ -448,9 +448,10 @@ const ASSET_TYPES = {
         deleteClass: 'bond-delete-btn',
         rowClass: 'bond-row',
         dataAttr: 'data-bond',
-        tableHeaders: ['Bond Type', 'Amount', 'Rate', 'Tenure', 'Purchase Date', 'Maturity Date', 'Actions'],
+        tableHeaders: ['Bond Name', 'Bond Number', 'Amount', 'Rate', 'Tenure', 'Purchase Date', 'Maturity Date', 'Actions'],
         fields: {
             'bondType': 'bond_type',
+            'bondNumber': 'bond_number',
             'bondAmount': 'amount',
             'bondRate': 'rate',
             'bondTenure': 'tenure_years',
@@ -459,6 +460,7 @@ const ASSET_TYPES = {
         },
         getFormData: () => ({
             bond_type: document.getElementById('bondType').value,
+            bond_number: document.getElementById('bondNumber').value,
             amount: parseFloat(document.getElementById('bondAmount').value),
             rate: parseFloat(document.getElementById('bondRate').value),
             tenure_years: parseInt(document.getElementById('bondTenure').value),
@@ -467,6 +469,7 @@ const ASSET_TYPES = {
         }),
         populateForm: (data) => {
             document.getElementById('bondType').value = data.bond_type;
+            document.getElementById('bondNumber').value = data.bond_number;
             document.getElementById('bondAmount').value = data.amount;
             document.getElementById('bondRate').value = data.rate;
             document.getElementById('bondTenure').value = data.tenure_years;
@@ -476,6 +479,7 @@ const ASSET_TYPES = {
         formatRow: (item) => {
             return `<tr class="bond-row" data-bond='${JSON.stringify(item)}' data-id="${item.id}">
                 <td class="bond-editable" style="cursor:pointer;">${item.bond_type}</td>
+                <td class="bond-editable" style="cursor:pointer;">${item.bond_number}</td>
                 <td class="bond-editable" style="cursor:pointer;">${formatCurrency(item.amount)}</td>
                 <td class="bond-editable" style="cursor:pointer;">${item.rate}%</td>
                 <td class="bond-editable" style="cursor:pointer;">${item.tenure_years} yrs</td>
@@ -989,33 +993,63 @@ async function loadRBIBonds() {
 document.getElementById('bondsForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     
-    const formData = {
-        bond_type: document.getElementById('bondType').value,
-        amount: parseFloat(document.getElementById('bondAmount').value),
-        rate: parseFloat(document.getElementById('bondRate').value),
-        tenure_years: parseInt(document.getElementById('bondTenure').value),
-        purchase_date: document.getElementById('bondPurchase').value,
-        maturity_date: document.getElementById('bondMaturity').value
-    };
+    const editId = document.getElementById('bondsEditId').value;
+    const config = ASSET_TYPES.RBIBonds;
+    const formData = config.getFormData();
     
     try {
-        const response = await fetch(`${API_URL}/rbi-bonds`, {
-            method: 'POST',
+        const url = editId ? `${API_URL}/${config.apiEndpoint}/${editId}` : `${API_URL}/${config.apiEndpoint}`;
+        const method = editId ? 'PUT' : 'POST';
+        
+        const response = await fetch(url, {
+            method: method,
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(formData)
         });
         
         if (response.ok) {
-            alert('RBI bond added successfully!');
-            document.getElementById('bondsForm').reset();
+            alert(editId ? 'RBI bonds updated successfully!' : 'RBI bonds added successfully!');
+            resetRBIBondsForm();
             loadRBIBonds();
             loadPortfolioSummary();
         }
     } catch (error) {
-        console.error('Error adding RBI bond:', error);
-        alert('Error adding RBI bond');
+        console.error('Error saving RBI bonds:', error);
+        alert('Error saving RBI bonds');
     }
 });
+
+// document.getElementById('bondsForm').addEventListener('submit', async (e) => {
+//     e.preventDefault();
+    
+//     const formData = {
+//         bond_type: document.getElementById('bondType').value,
+//         bond_number: document.getElementById('bondNumber').value,
+//         amount: parseFloat(document.getElementById('bondAmount').value),
+//         rate: parseFloat(document.getElementById('bondRate').value),
+//         tenure_years: parseInt(document.getElementById('bondTenure').value),
+//         purchase_date: document.getElementById('bondPurchase').value,
+//         maturity_date: document.getElementById('bondMaturity').value
+//     };
+    
+//     try {
+//         const response = await fetch(`${API_URL}/rbi-bonds`, {
+//             method: 'POST',
+//             headers: { 'Content-Type': 'application/json' },
+//             body: JSON.stringify(formData)
+//         });
+        
+//         if (response.ok) {
+//             alert('RBI bond added successfully!');
+//             document.getElementById('bondsForm').reset();
+//             loadRBIBonds();
+//             loadPortfolioSummary();
+//         }
+//     } catch (error) {
+//         console.error('Error adding RBI bond:', error);
+//         alert('Error adding RBI bond');
+//     }
+// });
 
 // Setup RBIBonds cancel button
 const rbiCancelBtn = document.getElementById('rbiCancelBtn');
@@ -1041,6 +1075,13 @@ document.addEventListener('DOMContentLoaded', () => {
     loadRBIBonds();
     loadPPF();
     updateInterestChange();
+    // Attach bond maturity auto-calc listeners
+    const bondPurchaseEl = document.getElementById('bondPurchase');
+    const bondTenureEl = document.getElementById('bondTenure');
+    if (bondPurchaseEl) bondPurchaseEl.addEventListener('change', updateBondMaturity);
+    if (bondTenureEl) bondTenureEl.addEventListener('input', updateBondMaturity);
+    // Initialize maturity if values present
+    updateBondMaturity();
     
 
     // setInterval(() => {
@@ -1336,6 +1377,7 @@ function renderHistoricalProgressChart(snapshots) {
                     y: {
                         ...themeOpts.scales.y,
                         beginAtZero: true,
+                        // stacked: true,
                         ticks: {
                             ...themeOpts.scales.y.ticks,
                             callback: function(value) {
@@ -1452,4 +1494,39 @@ function updateInterestChange() {
     });
 
 
+}
+
+// Compute maturity date by adding tenure (years) to purchase date
+function computeMaturityDate(purchaseDateStr, tenureYears) {
+    if (!purchaseDateStr) return '';
+    const tenure = parseInt(tenureYears, 10) || 0;
+    const d = new Date(purchaseDateStr);
+    if (isNaN(d.getTime())) return '';
+
+    const originalMonth = d.getMonth();
+    const originalDate = d.getDate();
+
+    d.setFullYear(d.getFullYear() + tenure);
+
+    // Handle month overflow (e.g., Feb 29 -> Mar 1). If month changed and original date was end-of-month, adjust to last day of target month
+    if (d.getMonth() !== originalMonth) {
+        // set to last day of previous month
+        d.setDate(0);
+    }
+
+    return d.toISOString().split('T')[0];
+}
+
+function updateBondMaturity() {
+    const purchaseEl = document.getElementById('bondPurchase');
+    const tenureEl = document.getElementById('bondTenure');
+    const maturityEl = document.getElementById('bondMaturity');
+    if (!purchaseEl || !tenureEl || !maturityEl) return;
+
+    const purchase = purchaseEl.value;
+    const tenure = tenureEl.value;
+    const mat = computeMaturityDate(purchase, tenure);
+    if (mat) {
+        maturityEl.value = mat;
+    }
 }

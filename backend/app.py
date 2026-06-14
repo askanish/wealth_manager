@@ -9,7 +9,7 @@ from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from io import BytesIO
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/api/*": {"origins": "*", "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"]}}, supports_credentials=True)
 
 # Database setup
 DATABASE = '/app/data/wealth_manager.db'
@@ -95,6 +95,7 @@ def init_db():
         CREATE TABLE IF NOT EXISTS rbi_bonds (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             bond_type TEXT NOT NULL,
+            bond_number TEXT NOT NULL,
             amount REAL NOT NULL,
             rate REAL NOT NULL,
             tenure_years INTEGER NOT NULL,
@@ -103,6 +104,16 @@ def init_db():
             date_created TEXT DEFAULT CURRENT_TIMESTAMP
         )
     ''')
+    
+    # Add missing columns if they don't exist (migration support for rbi_bonds)
+    try:
+        cursor.execute('ALTER TABLE rbi_bonds ADD COLUMN bond_number TEXT')
+    except:
+        pass
+    try:
+        cursor.execute('ALTER TABLE rbi_bonds ADD COLUMN tenure_years INTEGER')
+    except:
+        pass
     
     # PPF (Public Provident Fund) table
     cursor.execute('''
@@ -349,13 +360,54 @@ def add_rbi_bond():
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute('''
-        INSERT INTO rbi_bonds (bond_type, amount, rate, tenure_years, maturity_date, purchase_date)
-        VALUES (?, ?, ?, ?, ?, ?)
-    ''', (data['bond_type'], data['amount'], data['rate'], data['tenure_years'], 
+        INSERT INTO rbi_bonds (bond_type, bond_number, amount, rate, tenure_years, maturity_date, purchase_date)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    ''', (data['bond_type'], data['bond_number'], data['amount'], data['rate'], data['tenure_years'], 
           data['maturity_date'], data['purchase_date']))
     conn.commit()
     conn.close()
     return jsonify({'message': 'RBI bond added successfully'}), 201
+
+@app.route('/api/rbi-bonds/<int:rbi_bonds_id>', methods=['PUT'])
+def update_rbi_bond(rbi_bonds_id):
+    try:
+        data = request.json
+        conn = get_db()
+        cursor = conn.cursor()
+        
+        # Check if record exists
+        cursor.execute('SELECT id FROM rbi_bonds WHERE id = ?', (rbi_bonds_id,))
+        if not cursor.fetchone():
+            return jsonify({'error': 'RBI bond not found'}), 404
+        
+        cursor.execute('''
+            UPDATE rbi_bonds 
+            SET bond_type=?, bond_number=?, amount=?, rate=?, tenure_years=?, maturity_date=?, purchase_date=?
+            WHERE id=?
+        ''', (data['bond_type'], data['bond_number'], data['amount'], data['rate'], data['tenure_years'], data['maturity_date'], data['purchase_date'], rbi_bonds_id))
+        conn.commit()
+        conn.close()
+        return jsonify({'message': 'RBI bond updated successfully'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/rbi-bonds/<int:rbi_bonds_id>', methods=['DELETE'])
+def delete_rbi_bond(rbi_bonds_id):
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+        
+        # Check if record exists
+        cursor.execute('SELECT id FROM rbi_bonds WHERE id = ?', (rbi_bonds_id,))
+        if not cursor.fetchone():
+            return jsonify({'error': 'RBI bond not found'}), 404
+        
+        cursor.execute('DELETE FROM rbi_bonds WHERE id = ?', (rbi_bonds_id,))
+        conn.commit()
+        conn.close()
+        return jsonify({'message': 'RBI bond deleted successfully'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 # Routes for PPF
 @app.route('/api/ppf', methods=['GET'])
@@ -844,10 +896,11 @@ def import_excel():
                 for row in rows[1:]:
                     row_dict = dict(zip(headers, row))
                     cursor.execute('''
-                        INSERT INTO rbi_bonds (bond_type, amount, rate, tenure_years, maturity_date, purchase_date)
+                        INSERT INTO rbi_bonds (bond_type, bond_number, amount, rate, tenure_years, maturity_date, purchase_date)
                         VALUES (?, ?, ?, ?, ?, ?)
                     ''', (
                         row_dict.get('bond_type') or row_dict.get('bondType') or row_dict.get('Bond Type'),
+                        row_dict.get('bond_number') or row_dict.get('bondNumber') or row_dict.get('Bond Number'),
                         safe_float(row_dict.get('amount')),
                         safe_float(row_dict.get('rate')),
                         safe_int(row_dict.get('tenure_years')),
