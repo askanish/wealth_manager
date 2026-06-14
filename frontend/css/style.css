@@ -4,8 +4,8 @@
 /* ── Light theme (default) ────────────────────────────────────── */
 :root,
 [data-theme="light"] {
-    --font-sans: 'DM Sans', system-ui, -apple-system, sans-serif;
-    --font-mono: 'DM Mono', ui-monospace, monospace;
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    --font-mono: 'SF Mono', 'Monaco', 'Cascadia Code', 'Inconsolata', 'DM Mono', monospace;
 
     --bg-base: #eef2f7;
     --bg-surface: #ffffff;
@@ -46,12 +46,12 @@
     --bonds-color: #ea580c;
     --ppf-color: #db2777;
 
-    --summary-fd-bg: linear-gradient(145deg, #e0f2fe 0%, #bae6fd 100%);
-    --summary-mf-bg: linear-gradient(145deg, #ccfbf1 0%, #99f6e4 100%);
-    --summary-stocks-bg: linear-gradient(145deg, #ede9fe 0%, #ddd6fe 100%);
-    --summary-bonds-bg: linear-gradient(145deg, #ffedd5 0%, #fed7aa 100%);
-    --summary-ppf-bg: linear-gradient(145deg, #fce7f3 0%, #fbcfe8 100%);
-    --summary-total-bg: linear-gradient(145deg, #d1fae5 0%, #6ee7b7 100%);
+    --summary-fd-bg: #f0f9ff;
+    --summary-mf-bg: #f0fdf4;
+    --summary-stocks-bg: #faf5ff;
+    --summary-bonds-bg: #fffbf0;
+    --summary-ppf-bg: #fdf2f8;
+    --summary-total-bg: #f0fdf4;
 }
 
 /* ── Dark theme ───────────────────────────────────────────────── */
@@ -94,12 +94,12 @@
     --bonds-color: #fb923c;
     --ppf-color: #f472b6;
 
-    --summary-fd-bg: linear-gradient(145deg, #0c4a6e 0%, #075985 100%);
-    --summary-mf-bg: linear-gradient(145deg, #134e4a 0%, #115e59 100%);
-    --summary-stocks-bg: linear-gradient(145deg, #4c1d95 0%, #5b21b6 100%);
-    --summary-bonds-bg: linear-gradient(145deg, #7c2d12 0%, #9a3412 100%);
-    --summary-ppf-bg: linear-gradient(145deg, #831843 0%, #9d174d 100%);
-    --summary-total-bg: linear-gradient(145deg, #064e3b 0%, #047857 100%);
+    --summary-fd-bg: #082f49;
+    --summary-mf-bg: #042f2e;
+    --summary-stocks-bg: #2e1065;
+    --summary-bonds-bg: #5a2817;
+    --summary-ppf-bg: #500724;
+    --summary-total-bg: #0f3a2a;
 }
 
 /* Respect system preference when no manual choice saved */
@@ -143,12 +143,12 @@
         --bonds-color: #fb923c;
         --ppf-color: #f472b6;
 
-        --summary-fd-bg: linear-gradient(145deg, #0c4a6e 0%, #075985 100%);
-        --summary-mf-bg: linear-gradient(145deg, #134e4a 0%, #115e59 100%);
-        --summary-stocks-bg: linear-gradient(145deg, #4c1d95 0%, #5b21b6 100%);
-        --summary-bonds-bg: linear-gradient(145deg, #7c2d12 0%, #9a3412 100%);
-        --summary-ppf-bg: linear-gradient(145deg, #831843 0%, #9d174d 100%);
-        --summary-total-bg: linear-gradient(145deg, #064e3b 0%, #047857 100%);
+        --summary-fd-bg: #082f49;
+        --summary-mf-bg: #042f2e;
+        --summary-stocks-bg: #2e1065;
+        --summary-bonds-bg: #5a2817;
+        --summary-ppf-bg: #500724;
+        --summary-total-bg: #0f3a2a;
     }
 }
 
@@ -182,11 +182,42 @@ body {
     transition: background-color 0.25s ease, color 0.25s ease;
 }
 
+/* ── Headings ─────────────────────────────────────────────────── */
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-sans);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+
+h1 {
+    font-size: 2.5rem;
+}
+
+h2 {
+    font-size: 2rem;
+}
+
+h3 {
+    font-size: 1.75rem;
+}
+
+h4 {
+    font-size: 1.5rem;
+}
+
+h5 {
+    font-size: 1.25rem;
+}
+
+h6 {
+    font-size: 1rem;
+}
+
 /* ── Navbar ───────────────────────────────────────────────────── */
 .navbar-app {
     background: var(--bg-navbar) !important;
     box-shadow: var(--shadow-md);
-    padding: 0.75rem 0;
+    padding: 0.5rem 0;
 }
 
 .navbar-brand {
@@ -255,15 +286,17 @@ body {
 
 /* ── Layout ───────────────────────────────────────────────────── */
 .container-fluid {
-    padding-top: 2rem;
-    padding-bottom: 2rem;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
     max-width: 1400px;
+    padding-left: 1rem;
+    padding-right: 1rem;
 }
 
 /* ── Tabs ─────────────────────────────────────────────────────── */
 .nav-tabs {
     border-bottom: 2px solid var(--border);
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
     gap: 0.25rem;
     flex-wrap: wrap;
 }
@@ -296,6 +329,10 @@ body {
     animation: fadeIn 0.3s ease-in-out;
 }
 
+.tab-pane {
+    padding: 0;
+}
+
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(4px); }
     to   { opacity: 1; transform: translateY(0); }
@@ -305,26 +342,27 @@ body {
 .card {
     background-color: var(--bg-surface);
     border: 1px solid var(--border);
-    border-radius: 12px;
-    box-shadow: var(--shadow-sm);
-    transition: box-shadow 0.25s ease, transform 0.25s ease, border-color 0.25s ease;
+    border-radius: 8px;
+    box-shadow: none;
+    transition: border-color 0.25s ease, background-color 0.25s ease;
     animation: slideIn 0.35s ease-out;
 }
 
 .card:hover {
-    box-shadow: var(--shadow-md);
-    transform: translateY(-2px);
-    border-color: var(--border-strong);
+    box-shadow: none;
+    transform: none;
+    border-color: var(--border);
 }
 
 .card-body {
-    padding: 1.5rem;
+    padding: 1rem;
 }
 
 .card-title {
-    font-weight: 600;
+    font-weight: 700;
+    font-size: 1.1rem;
     color: var(--text-primary);
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
     letter-spacing: -0.01em;
 }
 
@@ -365,6 +403,96 @@ body {
     color: var(--text-primary);
     margin: 0;
     letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+}
+
+/* ── Dashboard Header ──────────────────────────────────────────── */
+.dashboard-header {
+    margin-bottom: 1.5rem;
+}
+
+.total-portfolio {
+    padding: 1.5rem 0;
+    border-bottom: 2px solid var(--border);
+}
+
+.total-portfolio-label {
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.total-portfolio-value {
+    font-family: var(--font-mono);
+    font-size: 3.5rem;
+    font-weight: 600;
+    color: var(--accent);
+    margin: 0;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+}
+
+/* ── Asset Breakdown ───────────────────────────────────────────── */
+.asset-breakdown {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 1rem;
+    padding: 1rem 0;
+    margin-bottom: 1rem;
+}
+
+.asset-item {
+    padding: 0.75rem 0.5rem;
+    border-radius: 8px;
+    text-align: center;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.asset-item--fd {
+    background: var(--summary-fd-bg);
+    border-left: 3px solid var(--fd-color);
+}
+
+.asset-item--mf {
+    background: var(--summary-mf-bg);
+    border-left: 3px solid var(--mf-color);
+}
+
+.asset-item--stocks {
+    background: var(--summary-stocks-bg);
+    border-left: 3px solid var(--stocks-color);
+}
+
+.asset-item--bonds {
+    background: var(--summary-bonds-bg);
+    border-left: 3px solid var(--bonds-color);
+}
+
+.asset-item--ppf {
+    background: var(--summary-ppf-bg);
+    border-left: 3px solid var(--ppf-color);
+}
+
+.asset-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+    margin-bottom: 0.25rem;
+}
+
+.asset-value {
+    font-family: var(--font-mono);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+    letter-spacing: -0.01em;
     font-variant-numeric: tabular-nums;
 }
 
@@ -567,7 +695,7 @@ body {
 /* ── Button Group and Snapshot Styles ────────────────────────────── */
 .button-group {
     display: flex;
-    gap: 1rem;
+    gap: 0.5rem;
     flex-wrap: wrap;
 }
 
@@ -632,11 +760,11 @@ body {
 .chart-card {
     background: var(--bg-surface);
     border: 1px solid var(--border);
-    box-shadow: var(--shadow-sm);
-    transition: all 0.3s ease;
+    box-shadow: none;
+    transition: border-color 0.3s ease, background-color 0.3s ease;
 }
 
 .chart-card:hover {
-    box-shadow: var(--shadow-md);
-    border-color: var(--accent);
+    box-shadow: none;
+    border-color: var(--border);
 }

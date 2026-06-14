@@ -58,65 +58,40 @@
                 <div class="tab-content" id="assetTabContent">
                     <!-- Dashboard Tab -->
                     <div class="tab-pane fade show active" id="dashboard-content" role="tabpanel">
-                        <div class="row mt-3">
-                            <!-- Summary Cards -->
-                            <div class="col-12 mb-4">
-                                <div class="row">
-                                    <div class="col-md-3 mb-3">
-                                        <div class="card summary-card summary-card--fd">
-                                            <div class="card-body text-center">
-                                                <h6 class="card-title">Fixed Deposits</h6>
-                                                <p class="summary-value" id="dashboard-fd">₹0</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3 mb-3">
-                                        <div class="card summary-card summary-card--mf">
-                                            <div class="card-body text-center">
-                                                <h6 class="card-title">Mutual Funds</h6>
-                                                <p class="summary-value" id="dashboard-mf">₹0</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3 mb-3">
-                                        <div class="card summary-card summary-card--stocks">
-                                            <div class="card-body text-center">
-                                                <h6 class="card-title">Stocks</h6>
-                                                <p class="summary-value" id="dashboard-stocks">₹0</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3 mb-3">
-                                        <div class="card summary-card summary-card--bonds">
-                                            <div class="card-body text-center">
-                                                <h6 class="card-title">RBI Bonds</h6>
-                                                <p class="summary-value" id="dashboard-bonds">₹0</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <div class="card summary-card summary-card--ppf">
-                                            <div class="card-body text-center">
-                                                <h6 class="card-title">PPF</h6>
-                                                <p class="summary-value" id="dashboard-ppf">₹0</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <div class="card summary-card summary-card--total">
-                                            <div class="card-body text-center">
-                                                <h6 class="card-title">Total Portfolio Value</h6>
-                                                <p class="summary-value" id="dashboard-total">₹0</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                        <!-- Total Portfolio Header -->
+                        <div class="dashboard-header">
+                            <div class="total-portfolio">
+                                <div class="total-portfolio-label">Total Portfolio Value</div>
+                                <div class="total-portfolio-value" id="dashboard-total">₹0</div>
                             </div>
+                        </div>
 
-                            <!-- Download Button and Snapshot Button -->
-                            <div class="col-12 mb-4">
+                        <!-- Asset Breakdown Row -->
+                        <div class="asset-breakdown">
+                            <div class="asset-item asset-item--fd">
+                                <div class="asset-label">Fixed Deposits</div>
+                                <div class="asset-value" id="dashboard-fd">₹0</div>
+                            </div>
+                            <div class="asset-item asset-item--mf">
+                                <div class="asset-label">Mutual Funds</div>
+                                <div class="asset-value" id="dashboard-mf">₹0</div>
+                            </div>
+                            <div class="asset-item asset-item--stocks">
+                                <div class="asset-label">Stocks</div>
+                                <div class="asset-value" id="dashboard-stocks">₹0</div>
+                            </div>
+                            <div class="asset-item asset-item--bonds">
+                                <div class="asset-label">RBI Bonds</div>
+                                <div class="asset-value" id="dashboard-bonds">₹0</div>
+                            </div>
+                            <div class="asset-item asset-item--ppf">
+                                <div class="asset-label">PPF</div>
+                                <div class="asset-value" id="dashboard-ppf">₹0</div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-4">
+                            <div class="col-12 mb-3">
                                 <div class="button-group">
                                     <button id="downloadExcelBtn" class="btn btn-success btn-lg">
                                         <i class="bi bi-download"></i> 📊 Download Excel Report
