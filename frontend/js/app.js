@@ -334,7 +334,7 @@ const ASSET_TYPES = {
                 <td class="fd-editable" style="cursor:pointer;">${item.rate}%</td>
                 <td class="fd-editable" style="cursor:pointer;">${item.tenure_months} months</td>
                 <td class="fd-editable" style="cursor:pointer;">${new Date(item.maturity_date).toLocaleDateString('en-IN')}</td>
-                <td><button class="btn btn-sm btn-danger fd-delete-btn" data-id="${item.id}">✕ Delete</button></td>
+                <td><button class="btn btn-sm btn-danger fd-delete-btn" data-id="${item.id}">✕</button></td>
             </tr>`;
         }
     },
@@ -377,7 +377,7 @@ const ASSET_TYPES = {
                 <td class="mf-editable" style="cursor:pointer;">${formatCurrency(item.nav)}</td>
                 <td class="mf-editable" style="cursor:pointer;">${formatCurrency(item.total_value)}</td>
                 <td class="mf-editable" style="cursor:pointer;">${new Date(item.purchase_date).toLocaleDateString('en-IN')}</td>
-                <td><button class="btn btn-sm btn-danger mf-delete-btn" data-id="${item.id}">✕ Delete</button></td>
+                <td><button class="btn btn-sm btn-danger mf-delete-btn" data-id="${item.id}">✕</button></td>
             </tr>`;
         }
     },
@@ -431,7 +431,7 @@ const ASSET_TYPES = {
                 <td class="stock-editable" style="cursor:pointer;">${formatCurrency(item.current_price)}</td>
                 <td class="stock-editable" style="cursor:pointer;">${formatCurrency(item.total_value)}</td>
                 <td class="stock-editable ${gainClass}" style="cursor:pointer;">${formatCurrency(gain)} (${gainPercent}%)</td>
-                <td><button class="btn btn-sm btn-danger stock-delete-btn" data-id="${item.id}">✕ Delete</button></td>
+                <td><button class="btn btn-sm btn-danger stock-delete-btn" data-id="${item.id}">✕</button></td>
             </tr>`;
         }
     },
@@ -485,7 +485,7 @@ const ASSET_TYPES = {
                 <td class="bond-editable" style="cursor:pointer;">${item.tenure_years} yrs</td>
                 <td class="bond-editable" style="cursor:pointer;">${new Date(item.purchase_date).toLocaleDateString('en-IN')}</td>
                 <td class="bond-editable" style="cursor:pointer;">${new Date(item.maturity_date).toLocaleDateString('en-IN')}</td>
-                <td><button class="btn btn-sm btn-danger bond-delete-btn" data-id="${item.id}">✕ Delete</button></td>
+                <td><button class="btn btn-sm btn-danger bond-delete-btn" data-id="${item.id}">✕</button></td>
             </tr>`;
         }
     },
@@ -531,7 +531,7 @@ const ASSET_TYPES = {
                 <td class="ppf-editable" style="cursor:pointer;">${formatCurrency(item.amount)}</td>
                 <td class="ppf-editable" style="cursor:pointer;">${item.rate}%</td>
                 <td class="ppf-editable" style="cursor:pointer;">${item.maturity_year}</td>
-                <td><button class="btn btn-sm btn-danger ppf-delete-btn" data-id="${item.id}">✕ Delete</button></td>
+                <td><button class="btn btn-sm btn-danger ppf-delete-btn" data-id="${item.id}">✕</button></td>
             </tr>`;
         }
     }
@@ -1429,7 +1429,7 @@ function renderSnapshotsTable(snapshots) {
                 <td>${formatCurrency(snapshot.rbi_bonds_total)}</td>
                 <td>${formatCurrency(snapshot.ppf_total)}</td>
                 <td><strong>${formatCurrency(snapshot.total_portfolio_value)}</strong></td>
-                <td><button class="btn btn-sm btn-danger portfolio-delete-btn" data-id="${snapshot.id}">✕ Delete</button></td>
+                <td><button class="btn btn-sm btn-danger portfolio-delete-btn" data-id="${snapshot.id}">✕</button></td>
             </tr>
         `;
     });

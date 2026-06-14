@@ -100,9 +100,6 @@
                                     <button id="uploadExcelBtn" class="btn btn-primary btn-lg" style="margin-left:6px;">
                                         <i class="bi bi-upload"></i> ⬆️ Upload Excel
                                     </button>
-                                    <button id="snapshotBtn" class="btn btn-info btn-lg" title="Take a snapshot of current portfolio totals" style="margin-left:6px;">
-                                        <i class="bi bi-camera"></i> 📸 Take Snapshot
-                                    </button>
                                 </div>
                             </div>
 
@@ -139,7 +136,12 @@
                             <div class="col-12 mb-4">
                                 <div class="card">
                                     <div class="card-body">
-                                        <h5 class="card-title">Snapshot History</h5>
+                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                                            <h5 class="card-title" style="margin: 0;">Snapshot History</h5>
+                                            <button id="snapshotBtn" class="btn btn-info" title="Take a snapshot of current portfolio totals">
+                                                <i class="bi bi-camera"></i> 📸 Take Snapshot
+                                            </button>
+                                        </div>
                                         <div class="table-responsive" id="snapshotsTableContainer">
                                             <p class="text-muted">No snapshots recorded yet. Click "Take Snapshot" to start tracking your portfolio growth.</p>
                                         </div>
