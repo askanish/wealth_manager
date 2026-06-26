@@ -255,6 +255,10 @@ async function loadPortfolioSummary() {
         console.log('dashboard-ppf element:', ppfEl);
         if (ppfEl) ppfEl.textContent = formatCurrency(data.ppf || 0);
         
+        const ppfInterestEl = document.getElementById('ppf-interest-summary');
+        console.log('ppf-interest-summary element:', ppfInterestEl);
+        if (ppfInterestEl) ppfInterestEl.textContent = formatCurrency(data.ppf || 0);
+        
         const totalEl = document.getElementById('dashboard-total');
         console.log('dashboard-total element:', totalEl);
         if (totalEl) totalEl.textContent = formatCurrency(data.total_portfolio_value || 0);
@@ -502,20 +506,22 @@ const ASSET_TYPES = {
         deleteClass: 'ppf-delete-btn',
         rowClass: 'ppf-row',
         dataAttr: 'data-ppf',
-        tableHeaders: ['Account Number', 'Financial Year', 'Amount', 'Rate', 'Maturity Year', 'Actions'],
+        tableHeaders: ['Account Number', 'Financial Year', 'Amount', 'Rate', 'Maturity Year', 'Date of Investment', 'Actions'],
         fields: {
             'ppfAccount': 'account_number',
             'ppfYear': 'financial_year',
             'ppfAmount': 'amount',
             'ppfRate': 'rate',
-            'ppfMaturityYear': 'maturity_year'
+            'ppfMaturityYear': 'maturity_year',
+            'ppfDateOfInvestment': 'date_of_investment'
         },
         getFormData: () => ({
             account_number: document.getElementById('ppfAccount').value,
             financial_year: document.getElementById('ppfYear').value,
             amount: parseFloat(document.getElementById('ppfAmount').value),
             rate: parseFloat(document.getElementById('ppfRate').value),
-            maturity_year: parseInt(document.getElementById('ppfMaturityYear').value)
+            maturity_year: parseInt(document.getElementById('ppfMaturityYear').value),
+            date_of_investment: document.getElementById('ppfDateOfInvestment').value
         }),
         populateForm: (data) => {
             document.getElementById('ppfAccount').value = data.account_number;
@@ -523,6 +529,7 @@ const ASSET_TYPES = {
             document.getElementById('ppfAmount').value = data.amount;
             document.getElementById('ppfRate').value = data.rate;
             document.getElementById('ppfMaturityYear').value = data.maturity_year;
+            document.getElementById('ppfDateOfInvestment').value = data.date_of_investment || '';
         },
         formatRow: (item) => {
             return `<tr class="ppf-row" data-ppf='${JSON.stringify(item)}' data-id="${item.id}">
@@ -531,6 +538,7 @@ const ASSET_TYPES = {
                 <td class="ppf-editable" style="cursor:pointer;">${formatCurrency(item.amount)}</td>
                 <td class="ppf-editable" style="cursor:pointer;">${item.rate}%</td>
                 <td class="ppf-editable" style="cursor:pointer;">${item.maturity_year}</td>
+                <td class="ppf-editable" style="cursor:pointer;">${item.date_of_investment ? new Date(item.date_of_investment).toLocaleDateString('en-IN') : ''}</td>
                 <td><button class="btn btn-sm btn-danger ppf-delete-btn" data-id="${item.id}">✕</button></td>
             </tr>`;
         }

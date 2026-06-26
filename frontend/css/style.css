@@ -1058,3 +1058,32 @@ h6 {
         color: #000 !important;
     }
 }
+
+/* PPF Interest Summary Card */
+.summary-card--ppf-interest {
+    background: var(--summary-ppf-bg);
+    border-left: 4px solid var(--ppf-color);
+}
+
+.summary-card--ppf-interest .card-title {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.summary-card--ppf-interest #ppf-interest-summary {
+    font-family: var(--font-mono);
+    font-size: 1.45rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin: 0;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Dark theme overrides */
+[data-theme="dark"] .summary-card--ppf-interest #ppf-interest-summary {
+    color: var(--text-on-accent);
+}

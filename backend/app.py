@@ -124,9 +124,16 @@ def init_db():
             amount REAL NOT NULL,
             rate REAL NOT NULL,
             maturity_year INTEGER NOT NULL,
+            date_of_investment TEXT NOT NULL,
             date_created TEXT DEFAULT CURRENT_TIMESTAMP
         )
     ''')
+    
+    # Add date_of_investment column if it doesn't exist (for existing databases)
+    try:
+        cursor.execute('ALTER TABLE ppf ADD COLUMN date_of_investment TEXT NOT NULL DEFAULT \'\'')
+    except:
+        pass  # Column already exists
     
     # Portfolio Snapshots table - for tracking historical data
     cursor.execute('''
@@ -425,9 +432,9 @@ def add_ppf():
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute('''
-        INSERT INTO ppf (account_number, financial_year, amount, rate, maturity_year)
-        VALUES (?, ?, ?, ?, ?)
-    ''', (data['account_number'], data['financial_year'], data['amount'], data['rate'], data['maturity_year']))
+        INSERT INTO ppf (account_number, financial_year, amount, rate, maturity_year, date_of_investment)
+        VALUES (?, ?, ?, ?, ?, ?)
+    ''', (data['account_number'], data['financial_year'], data['amount'], data['rate'], data['maturity_year'], data['date_of_investment']))
     conn.commit()
     conn.close()
     return jsonify({'message': 'PPF record added successfully'}), 201
@@ -446,9 +453,9 @@ def update_ppf(ppf_id):
         
         cursor.execute('''
             UPDATE ppf 
-            SET account_number=?, financial_year=?, amount=?, rate=?, maturity_year=?
+            SET account_number=?, financial_year=?, amount=?, rate=?, maturity_year=?, date_of_investment=?
             WHERE id=?
-        ''', (data['account_number'], data['financial_year'], data['amount'], data['rate'], data['maturity_year'], ppf_id))
+        ''', (data['account_number'], data['financial_year'], data['amount'], data['rate'], data['maturity_year'], data['date_of_investment'], ppf_id))
         conn.commit()
         conn.close()
         return jsonify({'message': 'PPF record updated successfully'}), 200
@@ -497,9 +504,23 @@ def get_portfolio_summary():
     cursor.execute('SELECT SUM(amount) as total FROM rbi_bonds')
     summary['rbi_bonds'] = cursor.fetchone()['total'] or 0
     
-    # PPF Total
-    cursor.execute('SELECT SUM(amount) as total FROM ppf')
-    summary['ppf'] = cursor.fetchone()['total'] or 0
+    # PPF Total Interest Earned (calculate individually for accuracy)
+    cursor.execute('SELECT amount, rate, date_of_investment, financial_year FROM ppf WHERE amount > 0 AND rate > 0')
+    ppf_records = cursor.fetchall()
+    total_ppf_interest = 0
+    
+    from datetime import datetime
+    current_year = datetime.now().year
+    
+    for record in ppf_records:
+        amount = record['amount']
+        rate = record['rate']
+        date_of_investment = record['date_of_investment']
+        financial_year = record['financial_year']
+        
+        total_ppf_interest = (total_ppf_interest + amount) * ((1 + (rate / 400)) ** (1 * 4))
+    
+    summary['ppf'] = total_ppf_interest
     
     summary['total_portfolio_value'] = sum(summary.values())
     
@@ -678,8 +699,18 @@ def export_excel():
     cursor.execute('SELECT SUM(amount) as total FROM rbi_bonds')
     bonds_total = cursor.fetchone()['total'] or 0
     
-    cursor.execute('SELECT SUM(amount) as total FROM ppf')
-    ppf_total = cursor.fetchone()['total'] or 0
+    # PPF Total Interest Earned (calculate individually for accuracy)
+    cursor.execute('SELECT amount, rate, date_of_investment, financial_year FROM ppf WHERE amount > 0 AND rate > 0')
+    ppf_records = cursor.fetchall()
+    ppf_total = 0
+    
+    for record in ppf_records:
+        amount = record['amount']
+        rate = record['rate']
+        date_of_investment = record['date_of_investment']
+        financial_year = record['financial_year']
+        
+        ppf_total = (ppf_total + amount) * ((1 + (rate / 400)) ** (1 * 4))
     
     total_portfolio = fd_total + mf_total + stocks_total + bonds_total + ppf_total
     
@@ -918,14 +949,15 @@ def import_excel():
                 for row in rows[1:]:
                     row_dict = dict(zip(headers, row))
                     cursor.execute('''
-                        INSERT INTO ppf (account_number, financial_year, amount, rate, maturity_year)
-                        VALUES (?, ?, ?, ?, ?)
+                        INSERT INTO ppf (account_number, financial_year, amount, rate, maturity_year, date_of_investment)
+                        VALUES (?, ?, ?, ?, ?, ?)
                     ''', (
                         row_dict.get('account_number') or row_dict.get('Account Number'),
                         row_dict.get('financial_year') or row_dict.get('Financial Year'),
                         safe_float(row_dict.get('amount')),
                         safe_float(row_dict.get('rate')),
-                        safe_int(row_dict.get('maturity_year'))
+                        safe_int(row_dict.get('maturity_year')),
+                        row_dict.get('date_of_investment') or row_dict.get('Date of Investment') or ''
                     ))
 
         # Historical Data (portfolio_snapshots)
