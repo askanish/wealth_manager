@@ -690,81 +690,371 @@ h6 {
     .table {
         font-size: 0.85rem;
     }
+    
+    /* Enhanced table responsiveness for mobile */
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        margin-bottom: 1rem;
+        -ms-overflow-style: -ms-autohiding-scrollbar;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .table-responsive > table {
+        width: 100%;
+        margin-bottom: 0;
+        min-width: 600px; /* Ensures horizontal scrolling on small screens */
+    }
+    
+    /* Improve readability of table cells */
+    .table-responsive > table th,
+    .table-responsive > table td {
+        padding: 0.75rem 0.5rem;
+        font-size: 0.875rem;
+        white-space: nowrap;
+    }
+    
+    /* Better form layouts on mobile */
+    .form-label {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+    
+    .form-control,
+    .form-select {
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+    }
+    
+    /* Better button spacing */
+    .btn {
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .button-group {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .button-group .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+    
+    /* Better card spacing */
+    .card-body {
+        padding: 1.5rem;
+    }
+    
+    .card-title {
+        font-size: 1.25rem;
+        margin-bottom: 1rem;
+    }
+    
+    /* Better summary cards layout */
+    .asset-breakdown {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+    }
+    
+    .asset-item {
+        padding: 1rem;
+    }
+    
+    .asset-label {
+        font-size: 0.875rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .asset-value {
+        font-size: 1.25rem;
+    }
+    
+    /* Better dashboard layout */
+    .total-portfolio-value {
+        font-size: 2.5rem;
+    }
+    
+    .total-portfolio-label {
+        font-size: 1rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    /* Better chart containers */
+    .chart-card {
+        margin-bottom: 1.5rem;
+    }
+    
+    .chart-card canvas {
+        max-height: 250px;
+        width: 100% !important;
+        height: auto !important;
+    }
+    
+    /* Better tab styling */
+    .nav-tabs {
+        border-bottom: 1px solid var(--border);
+        flex-wrap: wrap;
+    }
+    
+    .nav-tabs .nav-link {
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
+        border-radius: 0.5rem 0.5rem 0 0;
+        margin-bottom: 0;
+    }
+    
+    .nav-tabs .nav-link.active {
+        border-bottom-color: var(--accent);
+    }
+    
+    /* Better form layouts */
+    .row .col-md {
+        margin-bottom: 1rem;
+    }
+    
+    .row .col-md:last-child {
+        margin-bottom: 0;
+    }
+    
+    /* Better input labels and placeholders */
+    .form-control::placeholder {
+        font-size: 0.9rem;
+        opacity: 0.7;
+    }
+    
+    /* Better table header styling */
+    .table thead th {
+        font-size: 0.875rem;
+        padding: 1rem 0.75rem;
+        white-space: nowrap;
+    }
+    
+    .table tbody td {
+        padding: 1rem 0.75rem;
+        font-size: 0.9rem;
+    }
+    
+    /* Better action buttons in tables */
+    .fd-delete-btn,
+    .mf-delete-btn,
+    .stocks-delete-btn,
+    .bonds-delete-btn,
+    .ppf-delete-btn {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+    }
 }
 
-/* ── Button Group and Snapshot Styles ────────────────────────────── */
-.button-group {
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
+@media (max-width: 480px) {
+    /* Optimized for small phones */
+    .navbar-brand {
+        font-size: 1rem;
+    }
+    
+    .summary-value {
+        font-size: 1rem;
+    }
+    
+    .total-portfolio-value {
+        font-size: 2rem;
+    }
+    
+    .total-portfolio-label {
+        font-size: 0.875rem;
+    }
+    
+    .asset-breakdown {
+        grid-template-columns: 1fr;
+    }
+    
+    .nav-tabs .nav-link {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.8rem;
+    }
+    
+    .form-control,
+    .form-select {
+        padding: 0.65rem 0.85rem;
+        font-size: 0.9rem;
+        width: 100%; /* Full width on small screens */
+    }
+    
+    .btn {
+        padding: 0.65rem 1.25rem;
+        font-size: 0.9rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .chart-card canvas {
+        max-height: 200px;
+    }
+    
+    .table thead th {
+        font-size: 0.75rem;
+        padding: 0.75rem 0.5rem;
+    }
+    
+    .table tbody td {
+        padding: 0.75rem 0.5rem;
+        font-size: 0.8rem;
+    }
+    
+    /* Stack form fields vertically on very small screens */
+    .row .col-md {
+        width: 100%;
+        max-width: 100%;
+        flex: 0 0 100%;
+        margin-bottom: 0.75rem;
+    }
+    
+    .row .col-md:last-child {
+        margin-bottom: 0;
+    }
 }
 
-.btn-info {
-    background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
-    border: none;
-    color: white;
-    font-weight: 600;
-    transition: all 0.3s ease;
+/* Touch-friendly improvements for all touch devices */
+@media (hover: none) and (pointer: coarse) {
+    /* Prevent hover effects on touch devices */
+    .fd-editable:hover,
+    .mf-editable:hover,
+    .stocks-editable:hover,
+    .bonds-editable:hover,
+    .ppf-editable:hover {
+        background-color: transparent !important;
+    }
+    
+    /* Provide active feedback on touch */
+    .fd-editable:active,
+    .mf-editable:active,
+    .stocks-editable:active,
+    .bonds-editable:active,
+    .ppf-editable:active {
+        background-color: var(--accent-soft) !important;
+    }
+    
+    /* Ensure minimum touch target sizes */
+    .btn {
+        min-height: 44px; /* Recommended minimum touch target */
+        min-width: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .fd-editable,
+    .mf-editable,
+    .stocks-editable,
+    .bonds-editable,
+    .ppf-editable {
+        min-height: 44px; /* Recommended minimum touch target */
+        display: flex;
+        align-items: center;
+        padding: 0.5rem 0.75rem;
+    }
+    
+    /* Touch-friendly delete buttons */
+    .fd-delete-btn,
+    .mf-delete-btn,
+    .stocks-delete-btn,
+    .bonds-delete-btn,
+    .ppf-delete-btn {
+        min-height: 44px;
+        min-width: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.5rem;
+    }
+    
+    /* Improve form element touch targets */
+    .form-control,
+    .form-select {
+        min-height: 44px;
+    }
 }
 
-.btn-info:hover {
-    background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(6, 182, 212, 0.3);
+/* Additional mobile-specific enhancements */
+@media (max-width: 320px) {
+    /* Extra small devices */
+    .navbar-brand {
+        font-size: 0.9rem;
+    }
+    
+    .summary-value {
+        font-size: 0.9rem;
+    }
+    
+    .total-portfolio-value {
+        font-size: 1.75rem;
+    }
+    
+    .total-portfolio-label {
+        font-size: 0.75rem;
+    }
+    
+    .nav-tabs .nav-link {
+        padding: 0.4rem 0.6rem;
+        font-size: 0.75rem;
+    }
+    
+    .card-body {
+        padding: 0.75rem;
+    }
+    
+    .card-title {
+        font-size: 1.1rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    .asset-label {
+        font-size: 0.75rem;
+        margin-bottom: 0.25rem;
+    }
+    
+    .asset-value {
+        font-size: 1.1rem;
+    }
+    
+    .form-label {
+        font-size: 0.8rem;
+        margin-bottom: 0.4rem;
+    }
+    
+    .form-control,
+    .form-select {
+        padding: 0.6rem 0.75rem;
+        font-size: 0.85rem;
+    }
+    
+    .btn {
+        padding: 0.55rem 1rem;
+        font-size: 0.85rem;
+    }
 }
 
-.btn-info:active {
-    transform: translateY(0);
-}
-
-#snapshotBtn {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-#snapshotBtn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none;
-}
-
-/* Historical snapshots table styling */
-#snapshotsTableContainer {
-    max-height: 500px;
-    overflow-y: auto;
-}
-
-.table-header-row {
-    background: linear-gradient(135deg, var(--bg-surface-raised) 0%, var(--bg-surface) 100%);
-    font-weight: 600;
-    color: var(--text-primary);
-    border-bottom: 2px solid var(--border-strong);
-}
-
-.table tbody tr {
-    border-bottom: 1px solid var(--border);
-    transition: background-color 0.2s ease;
-}
-
-.table tbody tr:hover {
-    background-color: var(--accent-soft);
-}
-
-.table td {
-    padding: 0.75rem 1rem;
-    vertical-align: middle;
-}
-
-/* Chart card enhancement */
-.chart-card {
-    background: var(--bg-surface);
-    border: 1px solid var(--border);
-    box-shadow: none;
-    transition: border-color 0.3s ease, background-color 0.3s ease;
-}
-
-.chart-card:hover {
-    box-shadow: none;
-    border-color: var(--border);
+/* Print styles for better printing */
+@media print {
+    .navbar,
+    .theme-toggle,
+    .button-group,
+    .btn-secondary {
+        display: none !important;
+    }
+    
+    .card,
+    .table-responsive {
+        box-shadow: none !important;
+        border: 1px solid #dee2e6 !important;
+    }
+    
+    .table thead {
+        background-color: #e9ecef !important;
+        color: #000 !important;
+    }
 }
