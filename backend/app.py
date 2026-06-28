@@ -928,7 +928,7 @@ def import_excel():
                     row_dict = dict(zip(headers, row))
                     cursor.execute('''
                         INSERT INTO rbi_bonds (bond_type, bond_number, amount, rate, tenure_years, maturity_date, purchase_date)
-                        VALUES (?, ?, ?, ?, ?, ?)
+                        VALUES (?, ?, ?, ?, ?, ?, ?)
                     ''', (
                         row_dict.get('bond_type') or row_dict.get('bondType') or row_dict.get('Bond Type'),
                         row_dict.get('bond_number') or row_dict.get('bondNumber') or row_dict.get('Bond Number'),
