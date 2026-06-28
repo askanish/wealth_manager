@@ -38,7 +38,7 @@ def init_db():
             maturity_amt REAL,
             interest_amt REAL,
             rate REAL NOT NULL,
-            tenure_months INTEGER NOT NULL,
+            tenure_years INTEGER NOT NULL,
             maturity_date TEXT NOT NULL,
             date_created TEXT DEFAULT CURRENT_TIMESTAMP
         )
@@ -158,7 +158,7 @@ def init_db():
 def get_fixed_deposits():
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute('SELECT * FROM fixed_deposits')
+    cursor.execute('SELECT * FROM fixed_deposits ORDER BY maturity_date ASC')
     deposits = [dict(row) for row in cursor.fetchall()]
     conn.close()
     return jsonify(deposits)
@@ -169,9 +169,9 @@ def add_fixed_deposit():
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute('''
-        INSERT INTO fixed_deposits (bank_name, cust_id, fd_number, principal, maturity_amt, interest_amt, rate, tenure_months, maturity_date)
+        INSERT INTO fixed_deposits (bank_name, cust_id, fd_number, principal, maturity_amt, interest_amt, rate, tenure_years, maturity_date)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ''', (data['bank_name'], data['cust_id'], data['fd_number'], data['principal'], data['maturity_amt'], data['interest_amt'], data['rate'], data['tenure_months'], data['maturity_date']))
+    ''', (data['bank_name'], data['cust_id'], data['fd_number'], data['principal'], data['maturity_amt'], data['interest_amt'], data['rate'], data['tenure_years'], data['maturity_date']))
     conn.commit()
     conn.close()
     return jsonify({'message': 'Fixed deposit added successfully'}), 201
@@ -190,9 +190,9 @@ def update_fixed_deposit(fd_id):
         
         cursor.execute('''
             UPDATE fixed_deposits 
-            SET bank_name=?, cust_id=?, fd_number=?, principal=?, maturity_amt=?, interest_amt=?, rate=?, tenure_months=?, maturity_date=?
+            SET bank_name=?, cust_id=?, fd_number=?, principal=?, maturity_amt=?, interest_amt=?, rate=?, tenure_years=?, maturity_date=?
             WHERE id=?
-        ''', (data['bank_name'], data['cust_id'], data['fd_number'], data['principal'], data['maturity_amt'], data['interest_amt'], data['rate'], data['tenure_months'], data['maturity_date'], fd_id))
+        ''', (data['bank_name'], data['cust_id'], data['fd_number'], data['principal'], data['maturity_amt'], data['interest_amt'], data['rate'], data['tenure_years'], data['maturity_date'], fd_id))
         conn.commit()
         conn.close()
         return jsonify({'message': 'Fixed deposit updated successfully'}), 200
@@ -356,7 +356,7 @@ def delete_stock(stock_id):
 def get_rbi_bonds():
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute('SELECT * FROM rbi_bonds')
+    cursor.execute('SELECT * FROM rbi_bonds ORDER BY purchase_date ASC')
     bonds = [dict(row) for row in cursor.fetchall()]
     conn.close()
     return jsonify(bonds)
@@ -421,7 +421,7 @@ def delete_rbi_bond(rbi_bonds_id):
 def get_ppf():
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute('SELECT * FROM ppf')
+    cursor.execute('SELECT * FROM ppf ORDER BY date_of_investment ASC')
     ppf_records = [dict(row) for row in cursor.fetchall()]
     conn.close()
     return jsonify(ppf_records)
@@ -861,7 +861,7 @@ def import_excel():
                 for row in rows[1:]:
                     row_dict = dict(zip(headers, row))
                     cursor.execute('''
-                        INSERT INTO fixed_deposits (bank_name, cust_id, fd_number, principal, maturity_amt, interest_amt, rate, tenure_months, maturity_date)
+                        INSERT INTO fixed_deposits (bank_name, cust_id, fd_number, principal, maturity_amt, interest_amt, rate, tenure_years, maturity_date)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                     ''', (
                         row_dict.get('bank_name'),
@@ -871,7 +871,7 @@ def import_excel():
                         safe_float(row_dict.get('maturity_amt')),
                         safe_float(row_dict.get('interest_amt')),
                         safe_float(row_dict.get('rate')),
-                        safe_int(row_dict.get('tenure_months')),
+                        safe_int(row_dict.get('tenure_years')),
                         row_dict.get('maturity_date') or ''
                     ))
 
@@ -926,18 +926,17 @@ def import_excel():
                 cursor.execute('DELETE FROM rbi_bonds')
                 for row in rows[1:]:
                     row_dict = dict(zip(headers, row))
+                    bond_type = row_dict.get('bond_type', '')
+                    bond_number = row_dict.get('bond_number', '')
+                    amount = safe_float(row_dict.get('amount'))
+                    rate = safe_float(row_dict.get('rate'))
+                    tenure_years = safe_int(row_dict.get('tenure_years'))
+                    maturity_date = row_dict.get('maturity_date', '')
+                    purchase_date = row_dict.get('purchase_date', '')
                     cursor.execute('''
                         INSERT INTO rbi_bonds (bond_type, bond_number, amount, rate, tenure_years, maturity_date, purchase_date)
                         VALUES (?, ?, ?, ?, ?, ?, ?)
-                    ''', (
-                        row_dict.get('bond_type') or row_dict.get('bondType') or row_dict.get('Bond Type'),
-                        row_dict.get('bond_number') or row_dict.get('bondNumber') or row_dict.get('Bond Number'),
-                        safe_float(row_dict.get('amount')),
-                        safe_float(row_dict.get('rate')),
-                        safe_int(row_dict.get('tenure_years')),
-                        row_dict.get('maturity_date') or row_dict.get('Maturity Date') or '',
-                        row_dict.get('purchase_date') or row_dict.get('Purchase Date') or ''
-                    ))
+                    ''', (bond_type, bond_number, amount, rate, tenure_years, maturity_date, purchase_date))
 
         # PPF
         if 'PPF' in wb.sheetnames:
@@ -948,17 +947,17 @@ def import_excel():
                 cursor.execute('DELETE FROM ppf')
                 for row in rows[1:]:
                     row_dict = dict(zip(headers, row))
+                    account_number = row_dict.get('account_number') or row_dict.get('Account Number') or ''
+                    financial_year = row_dict.get('financial_year') or row_dict.get('Financial Year') or ''
+                    amount = safe_float(row_dict.get('amount'))
+                    rate = safe_float(row_dict.get('rate'))
+                    maturity_year = safe_int(row_dict.get('maturity_year'))
+                    date_of_investment = row_dict.get('date_of_investment') or row_dict.get('Date of Investment') or ''
+                    date_created = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                     cursor.execute('''
-                        INSERT INTO ppf (account_number, financial_year, amount, rate, maturity_year, date_of_investment)
-                        VALUES (?, ?, ?, ?, ?, ?)
-                    ''', (
-                        row_dict.get('account_number') or row_dict.get('Account Number'),
-                        row_dict.get('financial_year') or row_dict.get('Financial Year'),
-                        safe_float(row_dict.get('amount')),
-                        safe_float(row_dict.get('rate')),
-                        safe_int(row_dict.get('maturity_year')),
-                        row_dict.get('date_of_investment') or row_dict.get('Date of Investment') or ''
-                    ))
+                        INSERT INTO ppf (account_number, financial_year, amount, rate, maturity_year, date_of_investment, date_created)
+                        VALUES (?, ?, ?, ?, ?, ?, ?)
+                    ''', (account_number, financial_year, amount, rate, maturity_year, date_of_investment, date_created))
 
         # Historical Data (portfolio_snapshots)
         if 'Historical Data' in wb.sheetnames:

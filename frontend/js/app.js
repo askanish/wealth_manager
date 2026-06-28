@@ -302,7 +302,7 @@ const ASSET_TYPES = {
             'fdMaturityAmt': 'maturity_amt',
             'fdInterestAmt': 'interest_amt',
             'fdRate': 'rate',
-            'fdTenure': 'tenure_months',
+            'fdTenure': 'tenure_years',
             'fdMaturity': 'maturity_date'
         },
         getFormData: () => ({
@@ -313,7 +313,7 @@ const ASSET_TYPES = {
             maturity_amt: parseFloat(document.getElementById('fdMaturityAmt').value),
             interest_amt: parseFloat(document.getElementById('fdInterestAmt').value),
             rate: parseFloat(document.getElementById('fdRate').value),
-            tenure_months: parseInt(document.getElementById('fdTenure').value),
+            tenure_years: parseInt(document.getElementById('fdTenure').value),
             maturity_date: document.getElementById('fdMaturity').value
         }),
         populateForm: (data) => {
@@ -324,7 +324,7 @@ const ASSET_TYPES = {
             document.getElementById('fdMaturityAmt').value = data.maturity_amt;
             document.getElementById('fdInterestAmt').value = data.interest_amt;
             document.getElementById('fdRate').value = data.rate;
-            document.getElementById('fdTenure').value = data.tenure_months;
+            document.getElementById('fdTenure').value = data.tenure_years;
             document.getElementById('fdMaturity').value = data.maturity_date;
         },
         formatRow: (item) => {
@@ -336,7 +336,7 @@ const ASSET_TYPES = {
                 <td class="fd-editable" style="cursor:pointer;">${formatCurrency(item.maturity_amt)}</td>
                 <td class="fd-editable" style="cursor:pointer;">${formatCurrency(item.interest_amt)}</td>
                 <td class="fd-editable" style="cursor:pointer;">${item.rate}%</td>
-                <td class="fd-editable" style="cursor:pointer;">${item.tenure_months} months</td>
+                <td class="fd-editable" style="cursor:pointer;">${item.tenure_years}</td>
                 <td class="fd-editable" style="cursor:pointer;">${new Date(item.maturity_date).toLocaleDateString('en-IN')}</td>
                 <td><button class="btn btn-sm btn-danger fd-delete-btn" data-id="${item.id}">✕</button></td>
             </tr>`;
