@@ -480,6 +480,29 @@ def delete_ppf(ppf_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+# Helper function to calculate total PPF interest earned
+def get_ppf_total_interest():
+    conn = get_db()
+    cursor = conn.cursor()
+
+    cursor.execute('SELECT amount, rate, date_of_investment, financial_year FROM ppf WHERE amount > 0 AND rate > 0')
+    ppf_records = cursor.fetchall()
+    total_ppf_interest = 0
+    
+    from datetime import datetime
+    current_year = datetime.now().year
+    
+    for record in ppf_records:
+        amount = record['amount']
+        rate = record['rate']
+        date_of_investment = record['date_of_investment']
+        financial_year = record['financial_year']
+        
+        total_ppf_interest = (total_ppf_interest + amount) * ((1 + (rate / 400)) ** (1 * 4))
+
+    conn.close()
+    return total_ppf_interest
+
 # Portfolio Summary
 @app.route('/api/portfolio-summary', methods=['GET'])
 def get_portfolio_summary():
@@ -504,26 +527,12 @@ def get_portfolio_summary():
     cursor.execute('SELECT SUM(amount) as total FROM rbi_bonds')
     summary['rbi_bonds'] = cursor.fetchone()['total'] or 0
     
-    # PPF Total Interest Earned (calculate individually for accuracy)
-    cursor.execute('SELECT amount, rate, date_of_investment, financial_year FROM ppf WHERE amount > 0 AND rate > 0')
-    ppf_records = cursor.fetchall()
-    total_ppf_interest = 0
-    
-    from datetime import datetime
-    current_year = datetime.now().year
-    
-    for record in ppf_records:
-        amount = record['amount']
-        rate = record['rate']
-        date_of_investment = record['date_of_investment']
-        financial_year = record['financial_year']
-        
-        total_ppf_interest = (total_ppf_interest + amount) * ((1 + (rate / 400)) ** (1 * 4))
-    
-    summary['ppf'] = total_ppf_interest
+    # PPF Total Interest Earned (calculate individually for accuracy)   
+    summary['ppf'] = get_ppf_total_interest()
     
     summary['total_portfolio_value'] = sum(summary.values())
-    
+    #summary['total_portfolio_value'] = total_ppf_interest
+
     conn.close()
     return jsonify(summary)
 
@@ -552,8 +561,8 @@ def record_portfolio_snapshot():
         cursor.execute('SELECT SUM(amount) as total FROM rbi_bonds')
         bonds_total = cursor.fetchone()['total'] or 0
         
-        cursor.execute('SELECT SUM(amount) as total FROM ppf')
-        ppf_total = cursor.fetchone()['total'] or 0
+        #cursor.execute('SELECT SUM(amount) as total FROM ppf')
+        ppf_total = get_ppf_total_interest()
         
         total_portfolio = fd_total + mf_total + stocks_total + bonds_total + ppf_total
         
