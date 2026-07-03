@@ -225,6 +225,12 @@
                                 </form>
                             </div>
                         </div>
+                        <div class="mb-3 mt-3">
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="fdSearch" placeholder="Search Fixed Deposits (Bank, Cust ID, FD Number...)" onkeyup="filterTable('fdSearch', 'FDListTable')">
+                                <button class="btn btn-outline-secondary" type="button" onclick="clearSearch('fdSearch', 'FDListTable')" aria-label="Clear search">✕</button>
+                            </div>
+                        </div>
                         <div id="fdList" class="mt-4"></div>
                     </div>
 
@@ -269,6 +275,12 @@
                                         <button type="button" class="btn btn-secondary" id="mfCancelBtn" style="display:none;" onclick="resetMFForm()">Cancel Edit</button>
                                     </div>
                                 </form>
+                            </div>
+                        </div>
+                        <div class="mb-3 mt-3">
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="mfSearch" placeholder="Search Mutual Funds (Fund Name...)" onkeyup="filterTable('mfSearch', 'MFListTable')">
+                                <button class="btn btn-outline-secondary" type="button" onclick="clearSearch('mfSearch', 'MFListTable')" aria-label="Clear search">✕</button>
                             </div>
                         </div>
                         <div id="mfList" class="mt-4"></div>
@@ -329,6 +341,12 @@
                                         <button type="button" class="btn btn-secondary" id="stockCancelBtn" style="display:none;" onclick="resetStockForm()">Cancel Edit</button>
                                     </div>
                                 </form>
+                            </div>
+                        </div>
+                        <div class="mb-3 mt-3">
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="stockSearch" placeholder="Search Stocks (Name, Symbol...)" onkeyup="filterTable('stockSearch', 'STOCKListTable')">
+                                <button class="btn btn-outline-secondary" type="button" onclick="clearSearch('stockSearch', 'STOCKListTable')" aria-label="Clear search">✕</button>
                             </div>
                         </div>
                         <div id="stocksList" class="mt-4"></div>

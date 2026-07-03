@@ -97,6 +97,55 @@ function formatCurrency(value) {
     }).format(value);
 }
 
+// Table filter function
+function filterTable(searchInputId, tableId) {
+    const searchInput = document.getElementById(searchInputId);
+    const table = document.getElementById(tableId);
+    
+    if (!searchInput || !table) return;
+    
+    const tbody = table.getElementsByTagName('tbody')[0];
+    if (!tbody) return;
+    
+    const filter = searchInput.value.toLowerCase();
+    const rows = tbody.getElementsByTagName('tr');
+    
+    for (let i = 0; i < rows.length; i++) {
+        const cells = rows[i].getElementsByTagName('td');
+        let found = false;
+        
+        for (let j = 0; j < cells.length - 1; j++) { // Exclude the last column (Actions)
+            const cellText = cells[j].textContent || cells[j].innerText;
+            if (cellText.toLowerCase().indexOf(filter) > -1) {
+                found = true;
+                break;
+            }
+        }
+        
+        rows[i].style.display = found ? '' : 'none';
+    }
+}
+
+// Clear search function
+function clearSearch(searchInputId, tableId) {
+    const searchInput = document.getElementById(searchInputId);
+    const table = document.getElementById(tableId);
+    
+    if (!searchInput || !table) return;
+    
+    searchInput.value = '';
+    
+    const tbody = table.getElementsByTagName('tbody')[0];
+    if (!tbody) return;
+    
+    const rows = tbody.getElementsByTagName('tr');
+    for (let i = 0; i < rows.length; i++) {
+        rows[i].style.display = '';
+    }
+    
+    searchInput.focus();
+}
+
 // Render Wealth Distribution Bar Chart
 function renderWealthDistributionChart(data) {
     const ctx = document.getElementById('wealthDistributionChart');
