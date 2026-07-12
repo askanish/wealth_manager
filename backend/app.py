@@ -82,13 +82,42 @@ def init_db():
             stock_name TEXT NOT NULL,
             symbol TEXT NOT NULL,
             quantity INTEGER NOT NULL,
-            purchase_price REAL NOT NULL,
             current_price REAL NOT NULL,
             total_value REAL NOT NULL,
             purchase_date TEXT NOT NULL,
             date_created TEXT DEFAULT CURRENT_TIMESTAMP
         )
     ''')
+    
+    # Migration: Remove purchase_price column if it exists (SQLite doesn't support DROP COLUMN directly)
+    try:
+        # Check if purchase_price column exists
+        cursor.execute("PRAGMA table_info(stocks)")
+        columns = [row[1] for row in cursor.fetchall()]
+        if 'purchase_price' in columns:
+            # Create new table without purchase_price
+            cursor.execute('''
+                CREATE TABLE stocks_new (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    stock_name TEXT NOT NULL,
+                    symbol TEXT NOT NULL,
+                    quantity INTEGER NOT NULL,
+                    current_price REAL NOT NULL,
+                    total_value REAL NOT NULL,
+                    purchase_date TEXT NOT NULL,
+                    date_created TEXT DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+            # Copy data
+            cursor.execute('''
+                INSERT INTO stocks_new (id, stock_name, symbol, quantity, current_price, total_value, purchase_date, date_created)
+                SELECT id, stock_name, symbol, quantity, current_price, total_value, purchase_date, date_created FROM stocks
+            ''')
+            # Drop old table and rename new one
+            cursor.execute('DROP TABLE stocks')
+            cursor.execute('ALTER TABLE stocks_new RENAME TO stocks')
+    except Exception as e:
+        print(f"Migration warning for stocks table: {e}")
     
     # RBI Bonds table
     cursor.execute('''
@@ -300,9 +329,9 @@ def add_stock():
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute('''
-        INSERT INTO stocks (stock_name, symbol, quantity, purchase_price, current_price, total_value, purchase_date)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-    ''', (data['stock_name'], data['symbol'], data['quantity'], data['purchase_price'], 
+        INSERT INTO stocks (stock_name, symbol, quantity, current_price, total_value, purchase_date)
+        VALUES (?, ?, ?, ?, ?, ?)
+    ''', (data['stock_name'], data['symbol'], data['quantity'], 
           data['current_price'], total_value, data['purchase_date']))
     conn.commit()
     conn.close()
@@ -323,9 +352,9 @@ def update_stock(stock_id):
         
         cursor.execute('''
             UPDATE stocks 
-            SET stock_name=?, symbol=?, quantity=?, purchase_price=?, current_price=?, total_value=?, purchase_date=?
+            SET stock_name=?, symbol=?, quantity=?, current_price=?, total_value=?, purchase_date=?
             WHERE id=?
-        ''', (data['stock_name'], data['symbol'], data['quantity'], data['purchase_price'], 
+        ''', (data['stock_name'], data['symbol'], data['quantity'], 
               data['current_price'], total_value, data['purchase_date'], stock_id))
         conn.commit()
         conn.close()
@@ -914,13 +943,12 @@ def import_excel():
                 for row in rows[1:]:
                     row_dict = dict(zip(headers, row))
                     cursor.execute('''
-                        INSERT INTO stocks (stock_name, symbol, quantity, purchase_price, current_price, total_value, purchase_date)
-                        VALUES (?, ?, ?, ?, ?, ?, ?)
+                        INSERT INTO stocks (stock_name, symbol, quantity, current_price, total_value, purchase_date)
+                        VALUES (?, ?, ?, ?, ?, ?)
                     ''', (
                         row_dict.get('stock_name'),
                         row_dict.get('symbol'),
                         safe_int(row_dict.get('quantity')),
-                        safe_float(row_dict.get('purchase_price')),
                         safe_float(row_dict.get('current_price')),
                         safe_float(row_dict.get('total_value')),
                         row_dict.get('purchase_date') or ''

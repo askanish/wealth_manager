@@ -447,12 +447,11 @@ const ASSET_TYPES = {
         deleteClass: 'stock-delete-btn',
         rowClass: 'stock-row',
         dataAttr: 'data-stock',
-        tableHeaders: ['Stock', 'Symbol', 'Quantity', 'Avg Buy Price', 'Current Price', 'Total Value', 'Gain/Loss', 'Actions'],
+        tableHeaders: ['Stock', 'Symbol', 'Quantity', 'Current Price', 'Total Value', 'Actions'],
         fields: {
             'stockName': 'stock_name',
             'stockSymbol': 'symbol',
             'stockQty': 'quantity',
-            'stockPurchasePrice': 'purchase_price',
             'stockCurrentPrice': 'current_price',
             'stockPurchase': 'purchase_date'
         },
@@ -460,7 +459,6 @@ const ASSET_TYPES = {
             stock_name: document.getElementById('stockName').value,
             symbol: document.getElementById('stockSymbol').value,
             quantity: parseInt(document.getElementById('stockQty').value),
-            purchase_price: parseFloat(document.getElementById('stockPurchasePrice').value),
             current_price: parseFloat(document.getElementById('stockCurrentPrice').value),
             purchase_date: document.getElementById('stockPurchase').value
         }),
@@ -468,22 +466,16 @@ const ASSET_TYPES = {
             document.getElementById('stockName').value = data.stock_name;
             document.getElementById('stockSymbol').value = data.symbol;
             document.getElementById('stockQty').value = data.quantity;
-            document.getElementById('stockPurchasePrice').value = data.purchase_price;
             document.getElementById('stockCurrentPrice').value = data.current_price;
             document.getElementById('stockPurchase').value = data.purchase_date;
         },
         formatRow: (item) => {
-            const gain = (item.current_price - item.purchase_price) * item.quantity;
-            const gainPercent = ((item.current_price - item.purchase_price) / item.purchase_price * 100).toFixed(2);
-            const gainClass = gain >= 0 ? 'text-success' : 'text-danger';
             return `<tr class="stock-row" data-stock='${JSON.stringify(item)}' data-id="${item.id}">
                 <td class="stock-editable" style="cursor:pointer;">${item.stock_name}</td>
                 <td class="stock-editable" style="cursor:pointer;">${item.symbol}</td>
                 <td class="stock-editable" style="cursor:pointer;">${item.quantity}</td>
-                <td class="stock-editable" style="cursor:pointer;">${formatCurrency(item.purchase_price)}</td>
                 <td class="stock-editable" style="cursor:pointer;">${formatCurrency(item.current_price)}</td>
                 <td class="stock-editable" style="cursor:pointer;">${formatCurrency(item.total_value)}</td>
-                <td class="stock-editable ${gainClass}" style="cursor:pointer;">${formatCurrency(gain)} (${gainPercent}%)</td>
                 <td><button class="btn btn-sm btn-danger stock-delete-btn" data-id="${item.id}">✕</button></td>
             </tr>`;
         }

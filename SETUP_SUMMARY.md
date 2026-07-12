@@ -136,7 +136,7 @@ That's it! The app will:
    - id, fund_name, units, nav, total_value, purchase_date
 
 3. **stocks**
-   - id, stock_name, symbol, quantity, purchase_price, current_price, total_value, purchase_date
+   - id, stock_name, symbol, quantity, current_price, total_value, purchase_date
 
 4. **rbi_bonds**
    - id, bond_type, amount, rate, tenure_years, maturity_date, purchase_date
