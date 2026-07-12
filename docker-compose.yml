@@ -11,6 +11,7 @@ services:
     environment:
       - FLASK_APP=app.py
       - FLASK_ENV=development
+      - API_NINJAS_KEY=API_TOKEN  # Replace with your real API Ninjas key
     volumes:
       - ./backend:/app
       - ./data:/app/data

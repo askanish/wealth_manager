@@ -7,6 +7,7 @@ from datetime import datetime
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from io import BytesIO
+import requests
 
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*", "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"]}}, supports_credentials=True)
@@ -19,6 +20,48 @@ def get_db():
     conn = sqlite3.connect(DATABASE)
     conn.row_factory = sqlite3.Row
     return conn
+
+# API configuration for API Ninjas (stock price and currency conversion)
+API_NINJAS_KEY = os.environ.get('API_NINJAS_KEY', 'API_TOKEN')  # Set in docker-compose or environment
+API_NINJAS_HEADERS = {'X-Api-Key': API_NINJAS_KEY}
+
+def get_current_stock_price(symbol):
+    """Fetch current stock price (USD) for a given ticker symbol."""
+    try:
+        if not API_NINJAS_KEY or API_NINJAS_KEY == "API_TOKEN":
+            # Fallback default price when API key not configured
+            return 0.0
+
+        url = f'https://api.api-ninjas.com/v1/stockprice?ticker={symbol}'
+        resp = requests.get(url, headers=API_NINJAS_HEADERS, timeout=10)
+        if resp.status_code == requests.codes.ok:
+            data = resp.json()
+            return float(data.get('price', 0.0))
+        else:
+            print(f"Error fetching price for {symbol}: {resp.status_code}")
+            return 0.0
+    except Exception as e:
+        print(f"Exception fetching price for {symbol}: {e}")
+        return 0.0
+
+def convert_usd_to_inr(amount):
+    """Convert USD amount to INR using API Ninjas convertcurrency endpoint."""
+    try:
+        if not API_NINJAS_KEY or API_NINJAS_KEY == "API_TOKEN":
+            # Rough fallback conversion rate (approx)
+            return round(amount * 83.0, 2)
+
+        convert_url = f'https://api.api-ninjas.com/v1/convertcurrency?have=USD&want=INR&amount={amount}'
+        resp = requests.get(convert_url, headers=API_NINJAS_HEADERS, timeout=10)
+        if resp.status_code == requests.codes.ok:
+            data = resp.json()
+            return float(data.get('new_amount', 0.0))
+        else:
+            print(f"Error converting USD to INR: {resp.status_code}")
+            return round(amount * 83.0, 2)
+    except Exception as e:
+        print(f"Exception converting currency: {e}")
+        return round(amount * 83.0, 2)
 
 def init_db():
     """Initialize database with tables"""
@@ -82,36 +125,34 @@ def init_db():
             stock_name TEXT NOT NULL,
             symbol TEXT NOT NULL,
             quantity INTEGER NOT NULL,
-            current_price REAL NOT NULL,
             total_value REAL NOT NULL,
             purchase_date TEXT NOT NULL,
             date_created TEXT DEFAULT CURRENT_TIMESTAMP
         )
     ''')
     
-    # Migration: Remove purchase_price column if it exists (SQLite doesn't support DROP COLUMN directly)
+    # Migration: Remove purchase_price or current_price columns if they exist (SQLite doesn't support DROP COLUMN directly)
     try:
         # Check if purchase_price column exists
         cursor.execute("PRAGMA table_info(stocks)")
         columns = [row[1] for row in cursor.fetchall()]
-        if 'purchase_price' in columns:
-            # Create new table without purchase_price
+        if 'purchase_price' in columns or 'current_price' in columns:
+            # Create new table without purchase_price/current_price
             cursor.execute('''
                 CREATE TABLE stocks_new (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     stock_name TEXT NOT NULL,
                     symbol TEXT NOT NULL,
                     quantity INTEGER NOT NULL,
-                    current_price REAL NOT NULL,
                     total_value REAL NOT NULL,
                     purchase_date TEXT NOT NULL,
                     date_created TEXT DEFAULT CURRENT_TIMESTAMP
                 )
             ''')
-            # Copy data
+            # Copy data; ignore current_price if present
             cursor.execute('''
-                INSERT INTO stocks_new (id, stock_name, symbol, quantity, current_price, total_value, purchase_date, date_created)
-                SELECT id, stock_name, symbol, quantity, current_price, total_value, purchase_date, date_created FROM stocks
+                INSERT INTO stocks_new (id, stock_name, symbol, quantity, total_value, purchase_date, date_created)
+                SELECT id, stock_name, symbol, quantity, total_value, purchase_date, date_created FROM stocks
             ''')
             # Drop old table and rename new one
             cursor.execute('DROP TABLE stocks')
@@ -313,26 +354,59 @@ def delete_mutual_fund(mf_id):
         return jsonify({'error': str(e)}), 500
 
 # Routes for Stocks
+def enrich_stock_with_current_values(stock):
+    """Return stock record with current_price and total_value computed from API."""
+    symbol = stock['symbol']
+    quantity = stock['quantity']
+    total_value_stored = stock['total_value']
+
+    price_usd = get_current_stock_price(symbol)
+    if price_usd > 0 and quantity > 0:
+        total_usd = round(price_usd * quantity, 2)
+        total_inr = convert_usd_to_inr(total_usd)
+        current_price = round(total_inr / quantity, 2)
+    else:
+        total_inr = total_value_stored
+        current_price = round(total_inr / quantity, 2) if quantity else 0.0
+        total_usd = 0.0
+
+    return {
+        'id': stock['id'],
+        'stock_name': stock['stock_name'],
+        'symbol': symbol,
+        'quantity': quantity,
+        'current_price': current_price,
+        'total_value': total_inr,
+        'price_usd': price_usd,
+        'total_usd': total_usd
+    }
+
 @app.route('/api/stocks', methods=['GET'])
 def get_stocks():
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute('SELECT * FROM stocks')
-    stocks = [dict(row) for row in cursor.fetchall()]
+    stocks = [enrich_stock_with_current_values(dict(row)) for row in cursor.fetchall()]
     conn.close()
     return jsonify(stocks)
 
 @app.route('/api/stocks', methods=['POST'])
 def add_stock():
     data = request.json
-    total_value = data['quantity'] * data['current_price']
+    symbol = data['symbol']
+    quantity = data['quantity']
+    price_usd = get_current_stock_price(symbol)
+    total_value = 0.0
+    if price_usd > 0 and quantity > 0:
+        total_usd = round(price_usd * quantity, 2)
+        total_value = convert_usd_to_inr(total_usd)
+
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute('''
-        INSERT INTO stocks (stock_name, symbol, quantity, current_price, total_value, purchase_date)
-        VALUES (?, ?, ?, ?, ?, ?)
-    ''', (data['stock_name'], data['symbol'], data['quantity'], 
-          data['current_price'], total_value, data['purchase_date']))
+        INSERT INTO stocks (stock_name, symbol, quantity, total_value, purchase_date)
+        VALUES (?, ?, ?, ?, ?)
+    ''', (data['stock_name'], symbol, quantity, total_value, data['purchase_date']))
     conn.commit()
     conn.close()
     return jsonify({'message': 'Stock added successfully'}), 201
@@ -341,7 +415,14 @@ def add_stock():
 def update_stock(stock_id):
     try:
         data = request.json
-        total_value = data['quantity'] * data['current_price']
+        symbol = data['symbol']
+        quantity = data['quantity']
+        price_usd = get_current_stock_price(symbol)
+        total_value = 0.0
+        if price_usd > 0 and quantity > 0:
+            total_usd = round(price_usd * quantity, 2)
+            total_value = convert_usd_to_inr(total_usd)
+
         conn = get_db()
         cursor = conn.cursor()
         
@@ -352,10 +433,9 @@ def update_stock(stock_id):
         
         cursor.execute('''
             UPDATE stocks 
-            SET stock_name=?, symbol=?, quantity=?, current_price=?, total_value=?, purchase_date=?
+            SET stock_name=?, symbol=?, quantity=?, total_value=?, purchase_date=?
             WHERE id=?
-        ''', (data['stock_name'], data['symbol'], data['quantity'], 
-              data['current_price'], total_value, data['purchase_date'], stock_id))
+        ''', (data['stock_name'], symbol, quantity, total_value, data['purchase_date'], stock_id))
         conn.commit()
         conn.close()
         return jsonify({'message': 'Stock updated successfully'}), 200
@@ -377,6 +457,47 @@ def delete_stock(stock_id):
         conn.commit()
         conn.close()
         return jsonify({'message': 'Stock deleted successfully'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/stocks/current-values', methods=['GET'])
+def get_stocks_current_values():
+    """Refresh current stock total values from API Ninjas and update stored totals."""
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute('SELECT id, stock_name, symbol, quantity, total_value FROM stocks')
+        stocks = [dict(row) for row in cursor.fetchall()]
+
+        results = []
+        for s in stocks:
+            symbol = s['symbol']
+            quantity = s['quantity']
+            total_value_stored = s['total_value']
+            price_usd = get_current_stock_price(symbol)
+            total_usd = round(price_usd * quantity, 2) if price_usd > 0 and quantity > 0 else 0.0
+            if price_usd > 0 and quantity > 0:
+                total_inr = convert_usd_to_inr(total_usd)
+                current_price = round(total_inr / quantity, 2)
+                cursor.execute('UPDATE stocks SET total_value = ? WHERE id = ?', (total_inr, s['id']))
+            else:
+                total_inr = total_value_stored
+                current_price = round(total_inr / quantity, 2) if quantity else 0.0
+
+            results.append({
+                'id': s['id'],
+                'stock_name': s['stock_name'],
+                'symbol': symbol,
+                'quantity': quantity,
+                'price_usd': price_usd,
+                'current_price': current_price,
+                'total_usd': total_usd,
+                'total_value': total_inr
+            })
+
+        conn.commit()
+        conn.close()
+        return jsonify(results), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -942,15 +1063,19 @@ def import_excel():
                 cursor.execute('DELETE FROM stocks')
                 for row in rows[1:]:
                     row_dict = dict(zip(headers, row))
+                    quantity_value = safe_int(row_dict.get('quantity'))
+                    # Prefer imported total_value, else compute from current_price if available
+                    total_value = safe_float(row_dict.get('total_value'))
+                    if total_value == 0:
+                        total_value = quantity_value * safe_float(row_dict.get('current_price'))
                     cursor.execute('''
-                        INSERT INTO stocks (stock_name, symbol, quantity, current_price, total_value, purchase_date)
-                        VALUES (?, ?, ?, ?, ?, ?)
+                        INSERT INTO stocks (stock_name, symbol, quantity, total_value, purchase_date)
+                        VALUES (?, ?, ?, ?, ?)
                     ''', (
                         row_dict.get('stock_name'),
                         row_dict.get('symbol'),
-                        safe_int(row_dict.get('quantity')),
-                        safe_float(row_dict.get('current_price')),
-                        safe_float(row_dict.get('total_value')),
+                        quantity_value,
+                        total_value,
                         row_dict.get('purchase_date') or ''
                     ))
 

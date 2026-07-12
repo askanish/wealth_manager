@@ -270,6 +270,23 @@ function renderAssetAllocationChart(data) {
     }
 }
 
+// Refresh live stock prices from backend and update DB
+async function refreshStockPrices() {
+    try {
+        console.log('Refreshing stock prices...');
+        const response = await fetch(`${API_URL}/stocks/current-values`);
+        if (!response.ok) {
+            throw new Error(`Stock refresh API returned status ${response.status}`);
+        }
+        const data = await response.json();
+        console.log('Stock prices refreshed:', data);
+        return data;
+    } catch (error) {
+        console.error('Error refreshing stock prices:', error);
+        return null;
+    }
+}
+
 // Load portfolio summary
 async function loadPortfolioSummary() {
     try {
@@ -452,21 +469,18 @@ const ASSET_TYPES = {
             'stockName': 'stock_name',
             'stockSymbol': 'symbol',
             'stockQty': 'quantity',
-            'stockCurrentPrice': 'current_price',
             'stockPurchase': 'purchase_date'
         },
         getFormData: () => ({
             stock_name: document.getElementById('stockName').value,
             symbol: document.getElementById('stockSymbol').value,
             quantity: parseInt(document.getElementById('stockQty').value),
-            current_price: parseFloat(document.getElementById('stockCurrentPrice').value),
             purchase_date: document.getElementById('stockPurchase').value
         }),
         populateForm: (data) => {
             document.getElementById('stockName').value = data.stock_name;
             document.getElementById('stockSymbol').value = data.symbol;
             document.getElementById('stockQty').value = data.quantity;
-            document.getElementById('stockCurrentPrice').value = data.current_price;
             document.getElementById('stockPurchase').value = data.purchase_date;
         },
         formatRow: (item) => {
@@ -646,8 +660,12 @@ async function deleteAsset(assetType, id) {
         
         if (response.ok) {
             alert(`${assetType} deleted successfully!`);
-            loadAssets(assetType);
-            loadPortfolioSummary();
+            if (assetType === 'STOCK') {
+                await loadStocks();
+            } else {
+                await loadAssets(assetType);
+            }
+            await loadPortfolioSummary();
         } else {
             const errorData = await response.json();
             alert('Error: ' + (errorData.error || `Error deleting ${assetType}`));
@@ -904,6 +922,7 @@ async function deleteStock(id) {
 }
 
 async function loadStocks() {
+    await refreshStockPrices();
     await loadAssets('STOCK');
 }
 
@@ -927,8 +946,8 @@ document.getElementById('stocksForm').addEventListener('submit', async (e) => {
         if (response.ok) {
             alert(editId ? 'Stock updated successfully!' : 'Stock added successfully!');
             resetStockForm();
-            loadStocks();
-            loadPortfolioSummary();
+            await loadStocks();
+            await loadPortfolioSummary();
         }
     } catch (error) {
         console.error('Error saving stock:', error);
@@ -1114,9 +1133,10 @@ if (rbiAddBtn) {
 
 
 // Initialize on page load
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     initTheme();
     console.log('Page loaded - initializing data load');
+    await refreshStockPrices();
     loadPortfolioSummary();
     loadFixedDeposits();
     loadMutualFunds();

@@ -45,6 +45,7 @@ wheels/
 # Docker
 .docker-compose.override.yml
 docker-compose.override.yml
+docker-compose.local.yml
 
 # Node
 node_modules/
