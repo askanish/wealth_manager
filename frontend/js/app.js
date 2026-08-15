@@ -1200,18 +1200,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     const uploadInput = document.getElementById('uploadExcelInput');
     const uploadBtn = document.getElementById('uploadExcelBtn');
     if (uploadBtn && uploadInput) {
-        uploadBtn.addEventListener('click', async () => {
+        // Clicking upload button opens file dialog
+        uploadBtn.addEventListener('click', () => {
+            uploadInput.click();
+        });
+
+        // When file is selected, trigger upload
+        uploadInput.addEventListener('change', async () => {
             const file = uploadInput.files && uploadInput.files[0];
-            if (!file) {
-                alert('Please choose an .xlsx file to upload');
+            if (!file) return;
+
+            if (!confirm('This will replace current data with contents from the uploaded Excel file. Continue?')) {
+                uploadInput.value = '';
                 return;
             }
 
-            if (!confirm('This will replace current data with contents from the uploaded Excel file. Continue?')) return;
-
             try {
                 uploadBtn.disabled = true;
-                uploadBtn.textContent = 'Uploading...';
+                uploadBtn.innerHTML = '<span class="material-icons" aria-hidden="true">hourglass_empty</span>';
 
                 const formData = new FormData();
                 formData.append('file', file);
@@ -1241,7 +1247,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 alert('Error importing Excel: ' + error.message);
             } finally {
                 uploadBtn.disabled = false;
-                uploadBtn.textContent = '⬆️ Upload Excel';
+                uploadBtn.innerHTML = '<span class="material-icons" aria-hidden="true">upload</span>';
+                uploadInput.value = '';
             }
         });
     }

@@ -233,6 +233,31 @@ h6 {
     gap: 0.5rem;
 }
 
+.navbar-action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 0;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 0.5rem;
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-on-accent);
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.navbar-action-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.05);
+}
+
+.navbar-action-btn .material-icons {
+    font-size: 1.5rem;
+    line-height: 1;
+}
+
 .theme-toggle {
     display: inline-flex;
     align-items: center;
