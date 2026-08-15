@@ -360,6 +360,7 @@ const ASSET_TYPES = {
         rowClass: 'fd-row',
         dataAttr: 'data-fd',
         tableHeaders: ['Bank', 'Cust ID', 'FD Number', 'Principal', 'Maturity Amt', 'Interest Amt', 'Rate', 'Tenure', 'Maturity Date', 'Actions'],
+        numericColumns: [3, 4, 5, 6, 7],
         fields: {
             'fdBank': 'bank_name',
             'fdCustId': 'cust_id',
@@ -398,11 +399,11 @@ const ASSET_TYPES = {
                 <td class="fd-editable" style="cursor:pointer;">${item.bank_name}</td>
                 <td class="fd-editable" style="cursor:pointer;">${item.cust_id}</td>
                 <td class="fd-editable" style="cursor:pointer;">${item.fd_number}</td>
-                <td class="fd-editable" style="cursor:pointer;">${formatCurrency(item.principal)}</td>
-                <td class="fd-editable" style="cursor:pointer;">${formatCurrency(item.maturity_amt)}</td>
-                <td class="fd-editable" style="cursor:pointer;">${formatCurrency(item.interest_amt)}</td>
-                <td class="fd-editable" style="cursor:pointer;">${item.rate}%</td>
-                <td class="fd-editable" style="cursor:pointer;">${item.tenure_years}</td>
+                <td class="fd-editable numeric text-right" style="cursor:pointer;">${formatCurrency(item.principal)}</td>
+                <td class="fd-editable numeric text-right" style="cursor:pointer;">${formatCurrency(item.maturity_amt)}</td>
+                <td class="fd-editable numeric text-right" style="cursor:pointer;">${formatCurrency(item.interest_amt)}</td>
+                <td class="fd-editable numeric text-right" style="cursor:pointer;">${item.rate}%</td>
+                <td class="fd-editable numeric text-right" style="cursor:pointer;">${item.tenure_years}</td>
                 <td class="fd-editable" style="cursor:pointer;">${new Date(item.maturity_date).toLocaleDateString('en-IN')}</td>
                 <td><button class="btn btn-sm btn-danger fd-delete-btn" data-id="${item.id}">✕</button></td>
             </tr>`;
@@ -422,6 +423,7 @@ const ASSET_TYPES = {
         rowClass: 'mf-row',
         dataAttr: 'data-mf',
         tableHeaders: ['Fund Name', 'Units', 'NAV', 'Total Value', 'Purchase Date', 'Actions'],
+        numericColumns: [1, 2, 3],
         fields: {
             'mfName': 'fund_name',
             'mfUnits': 'units',
@@ -443,9 +445,9 @@ const ASSET_TYPES = {
         formatRow: (item) => {
             return `<tr class="mf-row" data-mf='${JSON.stringify(item)}' data-id="${item.id}">
                 <td class="mf-editable" style="cursor:pointer;">${item.fund_name}</td>
-                <td class="mf-editable" style="cursor:pointer;">${item.units}</td>
-                <td class="mf-editable" style="cursor:pointer;">${formatCurrency(item.nav)}</td>
-                <td class="mf-editable" style="cursor:pointer;">${formatCurrency(item.total_value)}</td>
+                <td class="mf-editable numeric text-right" style="cursor:pointer;">${item.units}</td>
+                <td class="mf-editable numeric text-right" style="cursor:pointer;">${formatCurrency(item.nav)}</td>
+                <td class="mf-editable numeric text-right" style="cursor:pointer;">${formatCurrency(item.total_value)}</td>
                 <td class="mf-editable" style="cursor:pointer;">${new Date(item.purchase_date).toLocaleDateString('en-IN')}</td>
                 <td><button class="btn btn-sm btn-danger mf-delete-btn" data-id="${item.id}">✕</button></td>
             </tr>`;
@@ -465,6 +467,7 @@ const ASSET_TYPES = {
         rowClass: 'stock-row',
         dataAttr: 'data-stock',
         tableHeaders: ['Stock', 'Symbol', 'Quantity', 'Stock Price(USD)', 'Current Price', 'Total Value', 'Actions'],
+        numericColumns: [2, 3, 4, 5],
         fields: {
             'stockName': 'stock_name',
             'stockSymbol': 'symbol',
@@ -487,10 +490,10 @@ const ASSET_TYPES = {
             return `<tr class="stock-row" data-stock='${JSON.stringify(item)}' data-id="${item.id}">
                 <td class="stock-editable" style="cursor:pointer;">${item.stock_name}</td>
                 <td class="stock-editable" style="cursor:pointer;">${item.symbol}</td>
-                <td class="stock-editable" style="cursor:pointer;">${item.quantity}</td>
-                <td class="stock-editable" style="cursor:pointer;">${item.price_usd}$</td>
-                <td class="stock-editable" style="cursor:pointer;">${formatCurrency(item.current_price)}</td>
-                <td class="stock-editable" style="cursor:pointer;">${formatCurrency(item.total_value)}</td>
+                <td class="stock-editable numeric text-right" style="cursor:pointer;">${item.quantity}</td>
+                <td class="stock-editable numeric text-right" style="cursor:pointer;">$${item.price_usd}</td>
+                <td class="stock-editable numeric text-right" style="cursor:pointer;">${formatCurrency(item.current_price)}</td>
+                <td class="stock-editable numeric text-right" style="cursor:pointer;">${formatCurrency(item.total_value)}</td>
                 <td><button class="btn btn-sm btn-danger stock-delete-btn" data-id="${item.id}">✕</button></td>
             </tr>`;
         }
@@ -509,6 +512,7 @@ const ASSET_TYPES = {
         rowClass: 'bond-row',
         dataAttr: 'data-bond',
         tableHeaders: ['Bond Name', 'Bond Number', 'Amount', 'Rate', 'Tenure', 'Purchase Date', 'Maturity Date', 'Actions'],
+        numericColumns: [2, 3, 4],
         fields: {
             'bondType': 'bond_type',
             'bondNumber': 'bond_number',
@@ -540,9 +544,9 @@ const ASSET_TYPES = {
             return `<tr class="bond-row" data-bond='${JSON.stringify(item)}' data-id="${item.id}">
                 <td class="bond-editable" style="cursor:pointer;">${item.bond_type}</td>
                 <td class="bond-editable" style="cursor:pointer;">${item.bond_number}</td>
-                <td class="bond-editable" style="cursor:pointer;">${formatCurrency(item.amount)}</td>
-                <td class="bond-editable" style="cursor:pointer;">${item.rate}%</td>
-                <td class="bond-editable" style="cursor:pointer;">${item.tenure_years} yrs</td>
+                <td class="bond-editable numeric text-right" style="cursor:pointer;">${formatCurrency(item.amount)}</td>
+                <td class="bond-editable numeric text-right" style="cursor:pointer;">${item.rate}%</td>
+                <td class="bond-editable numeric text-right" style="cursor:pointer;">${item.tenure_years} yrs</td>
                 <td class="bond-editable" style="cursor:pointer;">${new Date(item.purchase_date).toLocaleDateString('en-IN')}</td>
                 <td class="bond-editable" style="cursor:pointer;">${new Date(item.maturity_date).toLocaleDateString('en-IN')}</td>
                 <td><button class="btn btn-sm btn-danger bond-delete-btn" data-id="${item.id}">✕</button></td>
@@ -563,6 +567,7 @@ const ASSET_TYPES = {
         rowClass: 'ppf-row',
         dataAttr: 'data-ppf',
         tableHeaders: ['Account Number', 'Financial Year', 'Amount', 'Rate', 'Maturity Year', 'Date of Investment', 'Actions'],
+        numericColumns: [2, 3, 4],
         fields: {
             'ppfAccount': 'account_number',
             'ppfYear': 'financial_year',
@@ -591,9 +596,9 @@ const ASSET_TYPES = {
             return `<tr class="ppf-row" data-ppf='${JSON.stringify(item)}' data-id="${item.id}">
                 <td class="ppf-editable" style="cursor:pointer;">${item.account_number}</td>
                 <td class="ppf-editable" style="cursor:pointer;">${item.financial_year}</td>
-                <td class="ppf-editable" style="cursor:pointer;">${formatCurrency(item.amount)}</td>
-                <td class="ppf-editable" style="cursor:pointer;">${item.rate}%</td>
-                <td class="ppf-editable" style="cursor:pointer;">${item.maturity_year}</td>
+                <td class="ppf-editable numeric text-right" style="cursor:pointer;">${formatCurrency(item.amount)}</td>
+                <td class="ppf-editable numeric text-right" style="cursor:pointer;">${item.rate}%</td>
+                <td class="ppf-editable numeric text-right" style="cursor:pointer;">${item.maturity_year}</td>
                 <td class="ppf-editable" style="cursor:pointer;">${item.date_of_investment ? new Date(item.date_of_investment).toLocaleDateString('en-IN') : ''}</td>
                 <td><button class="btn btn-sm btn-danger ppf-delete-btn" data-id="${item.id}">✕</button></td>
             </tr>`;
@@ -696,7 +701,10 @@ async function loadAssets(assetType) {
             console.log(`load${assetType}: Found ${items.length} items`);
             html += `<div class="table-responsive"><table class="table table-striped table-hover" id="${assetType}ListTable">`;
             html += '<thead><tr>';
-            config.tableHeaders.forEach(h => html += `<th>${h}</th>`);
+            config.tableHeaders.forEach((h, index) => {
+                const isNumeric = Array.isArray(config.numericColumns) && config.numericColumns.includes(index);
+                html += `<th class="${isNumeric ? 'numeric' : ''}">${h}</th>`;
+            });
             html += '</tr></thead><tbody>';
             
             items.forEach(item => {
