@@ -464,7 +464,7 @@ const ASSET_TYPES = {
         deleteClass: 'stock-delete-btn',
         rowClass: 'stock-row',
         dataAttr: 'data-stock',
-        tableHeaders: ['Stock', 'Symbol', 'Quantity', 'Current Price', 'Total Value', 'Actions'],
+        tableHeaders: ['Stock', 'Symbol', 'Quantity', 'Stock Price(USD)', 'Current Price', 'Total Value', 'Actions'],
         fields: {
             'stockName': 'stock_name',
             'stockSymbol': 'symbol',
@@ -488,6 +488,7 @@ const ASSET_TYPES = {
                 <td class="stock-editable" style="cursor:pointer;">${item.stock_name}</td>
                 <td class="stock-editable" style="cursor:pointer;">${item.symbol}</td>
                 <td class="stock-editable" style="cursor:pointer;">${item.quantity}</td>
+                <td class="stock-editable" style="cursor:pointer;">${item.price_usd}$</td>
                 <td class="stock-editable" style="cursor:pointer;">${formatCurrency(item.current_price)}</td>
                 <td class="stock-editable" style="cursor:pointer;">${formatCurrency(item.total_value)}</td>
                 <td><button class="btn btn-sm btn-danger stock-delete-btn" data-id="${item.id}">✕</button></td>
