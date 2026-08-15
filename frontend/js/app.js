@@ -73,6 +73,42 @@ function initTheme() {
     });
 }
 
+function initLayout() {
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', () => {
+            document.body.classList.toggle('sidebar-collapsed');
+        });
+    }
+
+    function showPanel(targetId) {
+        const target = document.getElementById(targetId.replace('#', ''));
+        const panes = document.querySelectorAll('.tab-pane');
+        panes.forEach(pane => {
+            const active = pane.id === targetId.replace('#', '');
+            pane.classList.toggle('show', active);
+            pane.classList.toggle('active', active);
+            pane.style.display = active ? 'block' : 'none';
+        });
+
+        document.querySelectorAll('.sidebar-link[data-tab-target]').forEach(link => {
+            link.classList.toggle('active', link.getAttribute('data-tab-target') === targetId);
+        });
+    }
+
+    document.querySelectorAll('.sidebar-link[data-tab-target]').forEach(a => {
+        a.addEventListener('click', (e) => {
+            e.preventDefault();
+            const target = a.getAttribute('data-tab-target');
+            showPanel(target);
+            if (window.innerWidth < 992) document.body.classList.add('sidebar-collapsed');
+        });
+    });
+
+    const initialTarget = document.querySelector('.sidebar-link.active')?.getAttribute('data-tab-target') || '#dashboard-content';
+    showPanel(initialTarget);
+}
+
 function refreshChartsForTheme() {
     if (!lastPortfolioData) return;
     if (wealthDistributionChartInstance) {
@@ -1144,6 +1180,7 @@ if (rbiAddBtn) {
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', async () => {
     initTheme();
+    initLayout();
     console.log('Page loaded - initializing data load');
     await refreshStockPrices();
     loadPortfolioSummary();
