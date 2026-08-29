@@ -33,6 +33,10 @@ Wealth Manager is a lightweight Flask + Nginx app that lets you:
 - Database: SQLite
 - Runtime: Docker + Docker Compose
 
+## Donate 
+
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/ask.anish)
+
 ## Project Structure
 
 ```text
