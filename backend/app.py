@@ -22,14 +22,14 @@ def get_db():
     return conn
 
 # API configuration for API Ninjas (stock price and currency conversion)
-API_NINJAS_KEY = os.environ.get('API_NINJAS_KEY', 'API_TOKEN')  # Set in docker-compose or environment
-API_NINJAS_HEADERS = {'X-Api-Key': API_NINJAS_KEY}
+API_NINJAS_KEY = os.environ.get('API_NINJAS_KEY') or ''
+API_NINJAS_HEADERS = {'X-Api-Key': API_NINJAS_KEY} if API_NINJAS_KEY else {}
 
 def get_current_stock_price(symbol):
     """Fetch current stock price (USD) for a given ticker symbol."""
     try:
-        if not API_NINJAS_KEY or API_NINJAS_KEY == "API_TOKEN":
-            # Fallback default price when API key not configured
+        if not API_NINJAS_KEY:
+            # No API key configured: skip live price fetch and use a safe fallback
             return 0.0
 
         url = f'https://api.api-ninjas.com/v1/stockprice?ticker={symbol}'
@@ -47,8 +47,8 @@ def get_current_stock_price(symbol):
 def convert_usd_to_inr(amount):
     """Convert USD amount to INR using API Ninjas convertcurrency endpoint."""
     try:
-        if not API_NINJAS_KEY or API_NINJAS_KEY == "API_TOKEN":
-            # Rough fallback conversion rate (approx)
+        if not API_NINJAS_KEY:
+            # Rough fallback conversion rate when no API key is configured
             return round(amount * 83.0, 2)
 
         convert_url = f'https://api.api-ninjas.com/v1/convertcurrency?have=USD&want=INR&amount={amount}'

@@ -1,227 +1,239 @@
-# Wealth Manager - Finance Asset Tracker
+# Wealth Manager
 
-A comprehensive Docker-based web application for tracking and managing your finance assets including fixed deposits, mutual funds, stocks, RBI bonds, and PPF contributions.
-
-## Features
-
-- **Fixed Deposits**: Track bank deposits with interest rates and maturity dates
-- **Mutual Funds**: Monitor fund investments with NAV tracking
-- **Stocks**: Keep track of stock holdings with current and purchase prices
-- **RBI Bonds**: Manage sovereign gold bonds, floating rate bonds, and RBI taxable bonds
-- **PPF**: Track Public Provident Fund contributions and maturity
-- **Portfolio Summary**: Live dashboard showing total asset values
-- **Charts**: Asset allocation and wealth distribution visualizations
-- **Responsive Design**: Works on desktop and mobile devices
-
-## Wealth Manager Dashboard
+A Docker-based personal finance dashboard for tracking fixed deposits, mutual funds, stocks, RBI bonds, and PPF contributions in one place.
 
 ![Wealth Manager Screenshot](WealthManager.png)
 
-## Architecture
+## Overview
 
-```
+Wealth Manager is a lightweight Flask + Nginx app that lets you:
+
+- manage multiple investment categories in one dashboard
+- track portfolio totals and asset allocation
+- view live summaries for individual asset classes
+- store data in SQLite for local, persistent tracking
+- run completely with Docker on a local machine
+
+## Features
+
+- Fixed Deposits tracking with interest rate, tenure, and maturity date
+- Mutual Fund tracking with units, NAV, and total value
+- Stock tracking with quantity, purchase value, and current value
+- RBI Bond tracking with bond type and maturity details
+- PPF contribution tracking with annual summary fields
+- Portfolio summary cards and visual breakdowns
+- Responsive, tab-based frontend UI
+- Local SQLite persistence without external database setup
+
+## Tech Stack
+
+- Backend: Python, Flask
+- Frontend: HTML, Bootstrap, JavaScript
+- Web server: Nginx
+- Database: SQLite
+- Runtime: Docker + Docker Compose
+
+## Project Structure
+
+```text
 wealth_manager/
-├── docker-compose.yml          # Docker compose configuration
-├── Dockerfile.backend          # Backend Flask application
-├── Dockerfile.frontend         # Frontend Nginx server
+├── docker-compose.yml
+├── Dockerfile.backend
+├── Dockerfile.frontend
+├── .env.example
+├── .gitignore
+├── README.md
+├── QUICKSTART.md
+├── SETUP_SUMMARY.md
 ├── backend/
-│   ├── app.py                  # Flask API server
-│   └── requirements.txt         # Python dependencies
+│   ├── app.py
+│   └── requirements.txt
 ├── frontend/
-│   ├── index.html              # Main HTML page
-│   ├── nginx.conf              # Nginx configuration
+│   ├── index.html
+│   ├── nginx.conf
 │   ├── css/
-│   │   └── style.css           # Styling
+│   │   └── style.css
 │   └── js/
-│       └── app.js              # Frontend JavaScript
-└── data/                        # SQLite database storage
+│       └── app.js
+├── data/
+└── WealthManager.png
 ```
 
-## Services
+## Prerequisites
 
-### Backend (Flask API)
-- **Port**: 5000
-- **Container**: wealth-manager-backend
-- **Database**: SQLite (stored in `/data` volume)
-- **Features**:
-  - RESTful API endpoints for all asset types
-  - CORS enabled for frontend communication
-  - Automatic database initialization
+Before running the app, make sure you have:
 
-### Frontend (Nginx)
-- **Port**: 8080
-- **Container**: wealth-manager-frontend
-- **Features**:
-  - Responsive Bootstrap UI
-  - Tabbed interface for different asset types
-  - Live UI updates after adding or editing assets
-  - Currency formatting for Indian Rupee (₹)
+- Docker installed
+- Docker Compose installed
+- Access to ports 5000 and 8080 on your machine
+- A modern browser
 
-## Getting Started
+## Quick Start
 
-### Prerequisites
-- Docker
-- Docker Compose
-- Modern web browser
+1. Open a terminal and go to the project directory:
 
-### Installation & Running
-
-1. **Clone or navigate to the project directory**:
    ```bash
-   cd /path/to/wealth_manager
+   cd /home/anishsk/Work/wealth_manager
    ```
 
-2. **Build and start the containers**:
+2. Create a local environment file:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+3. Start the app:
+
+   ```bash
+   docker compose up --build
+   ```
+
+   If your machine uses the older syntax, this also works:
+
    ```bash
    docker-compose up --build
    ```
 
-   The containers will start and initialize the database automatically.
+4. Open the app in a browser:
 
-3. **Access the application**:
-   - Open your web browser and go to: `http://localhost:8080`
-
-4. **Stop the application**:
-   ```bash
-   docker-compose down
+   ```text
+   http://localhost:8080
    ```
 
-## Usage
+5. Stop the app when done:
 
-### Adding Assets
+   ```bash
+   docker compose down
+   ```
 
-1. **Fixed Deposits**
-   - Navigate to "Fixed Deposits" tab
-   - Enter bank name, principal amount, interest rate, tenure, and maturity date
-   - Click "Add Fixed Deposit"
+## Optional API Key
 
-2. **Mutual Funds**
-   - Go to "Mutual Funds" tab
-   - Fill in fund name, number of units, NAV, and purchase date
-   - Click "Add Mutual Fund"
+The app supports an optional external API for live stock data and currency conversion using API Ninjas.
 
-3. **Stocks**
-   - Select "Stocks" tab
-   - Enter stock details (name, symbol, quantity, prices, purchase date)
-   - View gain/loss calculations
-   - Click "Add Stock"
+- Do not store secrets in the repository.
+- Use the local `.env` file instead.
+- Example:
 
-4. **RBI Bonds**
-   - Open "RBI Bonds" tab
-   - Choose bond type and enter details
-   - Click "Add RBI Bond"
+  ```bash
+  API_NINJAS_KEY=your_real_key_here
+  ```
 
-5. **PPF**
-   - Go to "PPF" tab
-   - Enter account number, financial year, contribution amount, rate, and maturity year
-   - Click "Add PPF Contribution"
+If no key is present, the app falls back to safe default values and continues to run normally.
 
-### Portfolio Summary
+## Environment and Secrets
 
-The summary card at the top shows:
-- Total Fixed Deposits value
-- Total Mutual Funds value
-- Total Stocks value
-- Total RBI Bonds value
-- Total PPF value
-- **Total Portfolio Value** (sum of all assets)
+This project intentionally avoids hardcoded secrets.
 
-Data refreshes on page load and immediately after adding or updating assets.
+- keep your real API key in a local `.env` file
+- do not commit `.env` to Git
+- the repo contains only the template file [.env.example](.env.example)
 
-## API Endpoints
+## Services
 
-### Fixed Deposits
-- `GET /api/fixed-deposits` - Get all fixed deposits
-- `POST /api/fixed-deposits` - Add new fixed deposit
+### Backend
 
-### Mutual Funds
-- `GET /api/mutual-funds` - Get all mutual funds
-- `POST /api/mutual-funds` - Add new mutual fund
+- URL: http://localhost:5000
+- Container: `wealth-manager-backend`
+- Framework: Flask
+- Database: SQLite
 
-### Stocks
-- `GET /api/stocks` - Get all stocks
-- `POST /api/stocks` - Add new stock
+### Frontend
 
-### RBI Bonds
-- `GET /api/rbi-bonds` - Get all RBI bonds
-- `POST /api/rbi-bonds` - Add new RBI bond
-
-### PPF
-- `GET /api/ppf` - Get all PPF contributions
-- `POST /api/ppf` - Add new PPF contribution
-
-### Portfolio
-- `GET /api/portfolio-summary` - Get portfolio summary totals
-
-### Health
-- `GET /api/health` - Check backend health
+- URL: http://localhost:8080
+- Container: `wealth-manager-frontend`
+- Server: Nginx
+- UI: Bootstrap-based dashboard
 
 ## Data Storage
 
-The application uses SQLite database stored in the `data/` volume. This ensures:
-- Data persists between container restarts
-- Easy backup and migration
-- No external database setup required
+The app stores data in the local `data/` volume, so records persist between restarts unless you remove the data folder.
 
-### Database Tables
-- `fixed_deposits` - Fixed deposit records
-- `mutual_funds` - Mutual fund investments
-- `stocks` - Stock holdings
-- `rbi_bonds` - RBI bond investments
-- `ppf` - PPF contributions
+To reset the database:
+
+```bash
+rm -rf data
+sudo docker compose down
+sudo docker compose up --build
+```
+
+## API Endpoints
+
+### Assets
+
+- `GET /api/fixed-deposits`
+- `POST /api/fixed-deposits`
+- `GET /api/mutual-funds`
+- `POST /api/mutual-funds`
+- `GET /api/stocks`
+- `POST /api/stocks`
+- `GET /api/rbi-bonds`
+- `POST /api/rbi-bonds`
+- `GET /api/ppf`
+- `POST /api/ppf`
+
+### Portfolio
+
+- `GET /api/portfolio-summary`
+- `GET /api/portfolio-snapshots`
+- `POST /api/portfolio-snapshot`
+
+### Health
+
+- `GET /api/health`
+
+## Usage
+
+1. Open the dashboard in the browser.
+2. Choose an asset tab from the left sidebar.
+3. Fill in the form and submit the entry.
+4. Watch the totals and summary cards update automatically.
 
 ## Troubleshooting
 
-### Application not accessible
-- Ensure Docker and Docker Compose are installed
-- Check if ports 5000 and 8080 are available
-- Run `docker-compose logs` to view error messages
+### Docker permission issues
 
-### Backend connection errors
-- Wait a few seconds for backend to initialize
-- Check if backend container is running: `docker-compose ps`
-- Review backend logs: `docker-compose logs backend`
+If Docker says the socket is not accessible, make sure the Docker daemon is running and your user can access it:
 
-### Database issues
-- Delete the `data/` folder to reset the database
-- Ensure proper file permissions in the data directory
+```bash
+sudo systemctl start docker
+sudo usermod -aG docker $USER
+newgrp docker
+```
+
+### Port already in use
+
+Change the port mapping in Docker Compose if needed.
+
+### No live stock values
+
+This is expected if `API_NINJAS_KEY` is not set. The app still works with fallback values.
 
 ## Development
 
-### Modifying Frontend
-1. Edit files in `frontend/` directory
-2. Rebuild: `docker-compose up --build frontend`
+- Frontend edits live under the `frontend/` directory
+- Backend edits live under the `backend/` directory
+- Rebuild with:
 
-### Modifying Backend
-1. Edit files in `backend/` directory
-2. Rebuild: `docker-compose up --build backend`
+  ```bash
+  docker compose up --build
+  ```
 
-### Adding New Asset Types
-1. Create new table in `backend/app.py`
-2. Add API endpoints for CRUD operations
-3. Update `frontend/index.html` with new tab
-4. Add JavaScript handlers in `frontend/js/app.js`
+## Roadmap
 
-## Future Enhancements
-
-- [ ] User authentication and accounts
-- [ ] Data export to CSV/PDF
-- [ ] Performance analytics
-- [ ] Goal tracking
-- [ ] Recurring transactions
-- [ ] Mobile app
-- [ ] Real-time stock price integration
-- [ ] Tax calculation reports
-- [ ] Budget planning tools
+- user authentication
+- CSV/PDF export
+- portfolio analytics and goals
+- recurring transaction support
+- mobile-friendly enhancements
 
 ## License
 
-This project is open source and available for personal use.
+This project is open source and intended for personal or local-use finance tracking.
 
 ## Support
 
-For issues, feature requests, or contributions, please refer to the project repository.
+For issues or feature requests, use the repository issue tracker or contribute through a pull request.
 
 ---
 
-**Happy Wealth Tracking! 💰**
+Built for tracking wealth, one investment at a time.

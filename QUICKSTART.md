@@ -5,14 +5,26 @@
 - Docker Compose installed
 - Port 8080 and 5000 available on your machine
 
-## Quick Start in 3 Steps
+## Quick Start in 4 Steps
 
 ### Step 1: Navigate to Project Directory
 ```bash
-cd ~/Documents/Programs/DockerApps/wealth_manager
+cd /home/anishsk/Work/wealth_manager
 ```
 
-### Step 2: Start the Application
+### Step 2: Create a local environment file
+```bash
+cp .env.example .env
+```
+
+If you want live stock pricing from API Ninjas, add your key to the `.env` file. Leave it empty otherwise.
+
+### Step 3: Start the Application
+```bash
+docker compose up --build
+```
+
+If your environment still uses the legacy command, this also works:
 ```bash
 docker-compose up --build
 ```
@@ -23,7 +35,7 @@ wealth-manager-backend  | Running on http://0.0.0.0:5000
 wealth-manager-frontend | Configuration complete
 ```
 
-### Step 3: Open in Browser
+### Step 4: Open in Browser
 Visit: **http://localhost:8080**
 
 ## What You'll See

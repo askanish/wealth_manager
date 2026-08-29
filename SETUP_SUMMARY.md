@@ -43,16 +43,19 @@ wealth_manager/
 
 ---
 
-## 🚀 Quick Start (3 Commands)
+## 🚀 Quick Start (4 Commands)
 
 ```bash
 # 1. Navigate to project
-cd ~/Documents/Programs/DockerApps/wealth_manager
+cd /home/anishsk/Work/wealth_manager
 
-# 2. Start the app
-docker-compose up --build
+# 2. Create local env file
+cp .env.example .env
 
-# 3. Open browser
+# 3. Start the app
+docker compose up --build
+
+# 4. Open browser
 # Visit: http://localhost:8080
 ```
 
@@ -61,6 +64,8 @@ That's it! The app will:
 - ✅ Initialize SQLite database automatically
 - ✅ Start both services
 - ✅ Be accessible at http://localhost:8080
+
+If you choose not to add an API Ninjas key, the app still runs with safe fallback values.
 
 ---
 
@@ -122,6 +127,11 @@ That's it! The app will:
 - Private Docker network `wealth-network`
 - Backend and frontend communicate internally
 - Data persists in local `data/` volume
+
+### Secrets handling
+- No real API keys are stored in the repository
+- Use a local `.env` file for `API_NINJAS_KEY`
+- `.env` is excluded by Git via `.gitignore`
 
 ---
 

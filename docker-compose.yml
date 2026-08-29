@@ -8,10 +8,12 @@ services:
     container_name: wealth-manager-backend
     ports:
       - "5000:5000"
+    env_file:
+      - .env
     environment:
-      - FLASK_APP=app.py
-      - FLASK_ENV=development
-      - API_NINJAS_KEY=API_TOKEN  # Replace with your real API Ninjas key
+      FLASK_APP: app.py
+      FLASK_ENV: development
+      API_NINJAS_KEY: ${API_NINJAS_KEY:-}
     volumes:
       - ./backend:/app
       - ./data:/app/data
