@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Wealth Manager - Finance Asset Tracker</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23465fff'/%3E%3Cpath d='M17 42h30v5H17zm3-17h5v13h-5zm10-8h5v21h-5zm10 11h5v10h-5z' fill='white'/%3E%3Cpath d='M18 20l10-8 11 8' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
     <script>
         (function () {
             var t = localStorage.getItem('wm-theme');
@@ -20,7 +21,10 @@
 <body>
     <div class="app-shell">
         <aside class="sidebar" aria-label="Main">
-            <div class="sidebar-brand">💰</div>
+            <div class="sidebar-header">
+                <button id="sidebarToggle" class="sidebar-toggle" aria-label="Toggle sidebar"><span class="material-symbols-rounded" aria-hidden="true">menu</span></button>
+                <div class="sidebar-brand"><span class="brand-icon material-symbols-rounded" aria-hidden="true">insights</span></div>
+            </div>
             <nav class="sidebar-nav">
                 <a href="#dashboard-content" data-tab-target="#dashboard-content" class="sidebar-link active"><span class="material-symbols-rounded" aria-hidden="true">dashboard</span><span class="sidebar-label">Dashboard</span></a>
                 <a href="#fd-content" data-tab-target="#fd-content" class="sidebar-link"><span class="material-symbols-rounded" aria-hidden="true">account_balance</span><span class="sidebar-label">Fixed Deposits</span></a>
@@ -34,8 +38,10 @@
         <div class="main-content">
     <nav class="navbar navbar-app navbar-dark">
         <div class="container-fluid">
-            <button id="sidebarToggle" class="sidebar-toggle" aria-label="Toggle sidebar"><span class="material-symbols-rounded" aria-hidden="true">menu</span></button>
-            <span class="navbar-brand mb-0 h1">💰 Wealth Manager</span>
+            <div class="navbar-brand mb-0 h1">
+                <span class="brand-icon material-symbols-rounded" aria-hidden="true">insights</span>
+                <span>Wealth Manager</span>
+            </div>
             <div class="navbar-actions ms-auto">
                 <button type="button" id="downloadExcelBtn" class="navbar-action-btn" aria-label="Download Excel report" title="Download Excel Report">
                     <span class="material-symbols-rounded" aria-hidden="true">download</span>
