@@ -464,10 +464,67 @@ h6 {
 
 @media (max-width: 992px) {
     .sidebar {
+        position: fixed;
+        z-index: 1030;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        width: auto;
+        padding: 0.25rem 0 calc(0.25rem + env(safe-area-inset-bottom));
+        border: 0;
+        border-top: 1px solid var(--border);
+        gap: 0;
+    }
+
+    .sidebar-collapsed .sidebar {
+        width: auto;
+    }
+
+    .sidebar-header {
         display: none;
     }
-    .sidebar-collapsed .sidebar {
-        display: none;
+
+    .sidebar-nav {
+        flex-direction: row;
+        justify-content: space-around;
+        gap: 0;
+        padding: 0;
+    }
+
+    .sidebar-link {
+        flex: 1 1 0;
+        min-width: 0;
+        min-height: 3.25rem;
+        flex-direction: column;
+        justify-content: center;
+        gap: 0.15rem;
+        padding: 0.35rem 0.1rem;
+        border-radius: 0.5rem;
+        font-size: 0.65rem;
+        line-height: 1.1;
+        text-align: center;
+    }
+
+    .sidebar-link .material-symbols-rounded {
+        font-size: 1.15rem;
+    }
+
+    .sidebar-link .sidebar-label {
+        max-width: 100%;
+        overflow-wrap: anywhere;
+    }
+
+    .sidebar-collapsed .sidebar-link .sidebar-label {
+        display: inline-block;
+    }
+
+    .sidebar-link:hover {
+        transform: none;
+    }
+
+    .main-content {
+        min-width: 0;
+        padding-bottom: calc(5rem + env(safe-area-inset-bottom));
     }
 }
 
@@ -990,7 +1047,7 @@ h6 {
     
     /* Better summary cards layout */
     .asset-breakdown {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 0.75rem;
     }
     
@@ -1102,7 +1159,23 @@ h6 {
     }
     
     .asset-breakdown {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.5rem;
+    }
+
+    .asset-item {
+        min-width: 0;
+        padding: 0.65rem 0.4rem;
+    }
+
+    .asset-label {
+        font-size: 0.7rem;
+        letter-spacing: 0.03em;
+    }
+
+    .asset-value {
+        font-size: clamp(0.72rem, 3.2vw, 0.95rem);
+        overflow-wrap: anywhere;
     }
     
     .nav-tabs .nav-link {
@@ -1188,8 +1261,6 @@ h6 {
     .bonds-editable,
     .ppf-editable {
         min-height: 44px; /* Recommended minimum touch target */
-        display: flex;
-        align-items: center;
         padding: 0.5rem 0.75rem;
     }
     
@@ -1248,12 +1319,12 @@ h6 {
     }
     
     .asset-label {
-        font-size: 0.75rem;
+        font-size: 0.65rem;
         margin-bottom: 0.25rem;
     }
     
     .asset-value {
-        font-size: 1.1rem;
+        font-size: 0.72rem;
     }
     
     .form-label {
