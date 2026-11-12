@@ -513,7 +513,7 @@ const ASSET_TYPES = {
         getFormData: () => ({
             stock_name: document.getElementById('stockName').value,
             symbol: document.getElementById('stockSymbol').value,
-            quantity: parseInt(document.getElementById('stockQty').value),
+            quantity: parseFloat(document.getElementById('stockQty').value),
             purchase_date: document.getElementById('stockPurchase').value
         }),
         populateForm: (data) => {

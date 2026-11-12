@@ -124,7 +124,7 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             stock_name TEXT NOT NULL,
             symbol TEXT NOT NULL,
-            quantity INTEGER NOT NULL,
+            quantity REAL NOT NULL,
             total_value REAL NOT NULL,
             purchase_date TEXT NOT NULL,
             date_created TEXT DEFAULT CURRENT_TIMESTAMP
@@ -135,15 +135,21 @@ def init_db():
     try:
         # Check if purchase_price column exists
         cursor.execute("PRAGMA table_info(stocks)")
-        columns = [row[1] for row in cursor.fetchall()]
-        if 'purchase_price' in columns or 'current_price' in columns:
-            # Create new table without purchase_price/current_price
+        stock_columns = cursor.fetchall()
+        column_names = [column['name'] for column in stock_columns]
+        quantity_column = next((column for column in stock_columns if column['name'] == 'quantity'), None)
+        if (
+            'purchase_price' in column_names
+            or 'current_price' in column_names
+            or (quantity_column and quantity_column['type'].upper() != 'REAL')
+        ):
+            # Rebuild the table to remove obsolete columns and support fractional quantities.
             cursor.execute('''
                 CREATE TABLE stocks_new (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     stock_name TEXT NOT NULL,
                     symbol TEXT NOT NULL,
-                    quantity INTEGER NOT NULL,
+                    quantity REAL NOT NULL,
                     total_value REAL NOT NULL,
                     purchase_date TEXT NOT NULL,
                     date_created TEXT DEFAULT CURRENT_TIMESTAMP
@@ -1063,7 +1069,7 @@ def import_excel():
                 cursor.execute('DELETE FROM stocks')
                 for row in rows[1:]:
                     row_dict = dict(zip(headers, row))
-                    quantity_value = safe_int(row_dict.get('quantity'))
+                    quantity_value = safe_float(row_dict.get('quantity'))
                     # Prefer imported total_value, else compute from current_price if available
                     total_value = safe_float(row_dict.get('total_value'))
                     if total_value == 0:
