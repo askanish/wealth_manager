@@ -133,6 +133,15 @@ function formatCurrency(value) {
     }).format(value);
 }
 
+function formatQuantity(value) {
+    const quantity = Number(value);
+    if (!Number.isFinite(quantity)) return '0';
+    return new Intl.NumberFormat('en-IN', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 20
+    }).format(quantity);
+}
+
 // Table filter function
 function filterTable(searchInputId, tableId) {
     const searchInput = document.getElementById(searchInputId);
@@ -314,11 +323,28 @@ async function refreshStockPrices() {
         if (!response.ok) {
             throw new Error(`Stock refresh API returned status ${response.status}`);
         }
+
         const data = await response.json();
         console.log('Stock prices refreshed:', data);
         return data;
     } catch (error) {
         console.error('Error refreshing stock prices:', error);
+        return null;
+    }
+}
+
+async function refreshMutualFundNAVs() {
+    try {
+        console.log('Refreshing mutual fund NAVs...');
+        const response = await fetch(`${API_URL}/mutual-funds/current-values`);
+        if (!response.ok) {
+            throw new Error(`Mutual fund NAV refresh API returned status ${response.status}`);
+        }
+        const data = await response.json();
+        console.log('Mutual fund NAVs refreshed:', data);
+        return data;
+    } catch (error) {
+        console.error('Error refreshing mutual fund NAVs:', error);
         return null;
     }
 }
@@ -458,22 +484,24 @@ const ASSET_TYPES = {
         deleteClass: 'mf-delete-btn',
         rowClass: 'mf-row',
         dataAttr: 'data-mf',
-        tableHeaders: ['Fund Name', 'Units', 'NAV', 'Total Value', 'Purchase Date', 'Actions'],
-        numericColumns: [1, 2, 3],
+        tableHeaders: ['Fund Name', 'ISIN', 'Units', 'NAV', 'Total Value', 'Purchase Date', 'Actions'],
+        numericColumns: [2, 3, 4],
         fields: {
             'mfName': 'fund_name',
+            'mfISIN': 'isin',
             'mfUnits': 'units',
             'mfNAV': 'nav',
             'mfPurchase': 'purchase_date'
         },
         getFormData: () => ({
             fund_name: document.getElementById('mfName').value,
+            isin: document.getElementById('mfISIN').value.trim().toUpperCase(),
             units: parseFloat(document.getElementById('mfUnits').value),
-            nav: parseFloat(document.getElementById('mfNAV').value),
             purchase_date: document.getElementById('mfPurchase').value
         }),
         populateForm: (data) => {
             document.getElementById('mfName').value = data.fund_name;
+            document.getElementById('mfISIN').value = data.isin || '';
             document.getElementById('mfUnits').value = data.units;
             document.getElementById('mfNAV').value = data.nav;
             document.getElementById('mfPurchase').value = data.purchase_date;
@@ -481,6 +509,7 @@ const ASSET_TYPES = {
         formatRow: (item) => {
             return `<tr class="mf-row" data-mf='${JSON.stringify(item)}' data-id="${item.id}">
                 <td class="mf-editable" style="cursor:pointer;">${item.fund_name}</td>
+                <td class="mf-editable" style="cursor:pointer;">${item.isin || ''}</td>
                 <td class="mf-editable numeric text-right" style="cursor:pointer;">${item.units}</td>
                 <td class="mf-editable numeric text-right" style="cursor:pointer;">${formatCurrency(item.nav)}</td>
                 <td class="mf-editable numeric text-right" style="cursor:pointer;">${formatCurrency(item.total_value)}</td>
@@ -526,7 +555,7 @@ const ASSET_TYPES = {
             return `<tr class="stock-row" data-stock='${JSON.stringify(item)}' data-id="${item.id}">
                 <td class="stock-editable" style="cursor:pointer;">${item.stock_name}</td>
                 <td class="stock-editable" style="cursor:pointer;">${item.symbol}</td>
-                <td class="stock-editable numeric text-right" style="cursor:pointer;">${item.quantity}</td>
+                <td class="stock-editable numeric text-right" style="cursor:pointer;">${formatQuantity(item.quantity)}</td>
                 <td class="stock-editable numeric text-right" style="cursor:pointer;">$${item.price_usd}</td>
                 <td class="stock-editable numeric text-right" style="cursor:pointer;">${formatCurrency(item.current_price)}</td>
                 <td class="stock-editable numeric text-right" style="cursor:pointer;">${formatCurrency(item.total_value)}</td>
@@ -887,6 +916,7 @@ async function deleteMutualFund(id) {
 }
 
 async function loadMutualFunds() {
+    await refreshMutualFundNAVs();
     await loadAssets('MF');
 }
 

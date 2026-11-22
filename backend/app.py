@@ -8,6 +8,8 @@ from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from io import BytesIO
 import requests
+import math
+from decimal import Decimal, ROUND_HALF_UP
 
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*", "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"]}}, supports_credentials=True)
@@ -110,6 +112,7 @@ def init_db():
         CREATE TABLE IF NOT EXISTS mutual_funds (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             fund_name TEXT NOT NULL,
+            isin TEXT NOT NULL DEFAULT '',
             units REAL NOT NULL,
             nav REAL NOT NULL,
             total_value REAL NOT NULL,
@@ -117,6 +120,11 @@ def init_db():
             date_created TEXT DEFAULT CURRENT_TIMESTAMP
         )
     ''')
+
+    try:
+        cursor.execute("ALTER TABLE mutual_funds ADD COLUMN isin TEXT NOT NULL DEFAULT ''")
+    except sqlite3.OperationalError:
+        pass
     
     # Stocks table
     cursor.execute('''
@@ -294,25 +302,73 @@ def delete_fixed_deposit(fd_id):
         return jsonify({'error': str(e)}), 500
 
 # Routes for Mutual Funds
+def get_mutual_fund_nav(isin):
+    """Fetch the latest NAV for an Indian mutual fund by ISIN."""
+    if not isin:
+        return 0.0
+    try:
+        response = requests.get(
+            'https://api.tigzig.com/mf/v1/nav',
+            params={'scheme': isin, 'latest': 'true'},
+            timeout=15
+        )
+        if response.status_code == requests.codes.ok:
+            data = response.json()
+            records = data.get('data', [])
+            if records:
+                nav = float(records[0].get('nav', 0.0))
+                return nav if nav > 0 else 0.0
+        print(f"Error fetching NAV for ISIN {isin}: {response.status_code}")
+    except Exception as e:
+        print(f"Exception fetching NAV for ISIN {isin}: {e}")
+    return 0.0
+
+def calculate_mutual_fund_total(units, nav):
+    return float((Decimal(str(units)) * Decimal(str(nav))).quantize(
+        Decimal('0.01'),
+        rounding=ROUND_HALF_UP
+    ))
+
+def enrich_mutual_fund_with_nav(fund):
+    nav = get_mutual_fund_nav(fund['isin'])
+    units = float(fund['units'])
+    total_value = calculate_mutual_fund_total(units, nav) if nav > 0 else float(fund['total_value'])
+    return {
+        'id': fund['id'],
+        'fund_name': fund['fund_name'],
+        'isin': fund['isin'],
+        'units': units,
+        'nav': nav if nav > 0 else float(fund['nav']),
+        'total_value': total_value,
+        'purchase_date': fund['purchase_date']
+    }
+
 @app.route('/api/mutual-funds', methods=['GET'])
 def get_mutual_funds():
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute('SELECT * FROM mutual_funds')
-    funds = [dict(row) for row in cursor.fetchall()]
+    funds = [enrich_mutual_fund_with_nav(dict(row)) for row in cursor.fetchall()]
     conn.close()
     return jsonify(funds)
 
 @app.route('/api/mutual-funds', methods=['POST'])
 def add_mutual_fund():
     data = request.json
-    total_value = data['units'] * data['nav']
+    isin = str(data.get('isin', '')).strip().upper()
+    units = float(data['units'])
+    nav = get_mutual_fund_nav(isin)
+    total_value = calculate_mutual_fund_total(units, nav) if nav > 0 else 0.0
+    if not isin:
+        return jsonify({'error': 'ISIN is required'}), 400
+    if nav <= 0:
+        return jsonify({'error': 'Could not retrieve NAV for this ISIN'}), 400
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute('''
-        INSERT INTO mutual_funds (fund_name, units, nav, total_value, purchase_date)
-        VALUES (?, ?, ?, ?, ?)
-    ''', (data['fund_name'], data['units'], data['nav'], total_value, data['purchase_date']))
+        INSERT INTO mutual_funds (fund_name, isin, units, nav, total_value, purchase_date)
+        VALUES (?, ?, ?, ?, ?, ?)
+    ''', (data['fund_name'], isin, units, nav, total_value, data['purchase_date']))
     conn.commit()
     conn.close()
     return jsonify({'message': 'Mutual fund added successfully'}), 201
@@ -321,6 +377,14 @@ def add_mutual_fund():
 def update_mutual_fund(mf_id):
     try:
         data = request.json
+        isin = str(data.get('isin', '')).strip().upper()
+        units = float(data['units'])
+        nav = get_mutual_fund_nav(isin)
+        if not isin:
+            return jsonify({'error': 'ISIN is required'}), 400
+        if nav <= 0:
+            return jsonify({'error': 'Could not retrieve NAV for this ISIN'}), 400
+        total_value = calculate_mutual_fund_total(units, nav)
         conn = get_db()
         cursor = conn.cursor()
         
@@ -328,13 +392,12 @@ def update_mutual_fund(mf_id):
         cursor.execute('SELECT id FROM mutual_funds WHERE id = ?', (mf_id,))
         if not cursor.fetchone():
             return jsonify({'error': 'Mutual fund not found'}), 404
-        
-        total_value = data['units'] * data['nav']
+
         cursor.execute('''
             UPDATE mutual_funds 
-            SET fund_name=?, units=?, nav=?, total_value=?, purchase_date=?
+            SET fund_name=?, isin=?, units=?, nav=?, total_value=?, purchase_date=?
             WHERE id=?
-        ''', (data['fund_name'], data['units'], data['nav'], total_value, data['purchase_date'], mf_id))
+        ''', (data['fund_name'], isin, units, nav, total_value, data['purchase_date'], mf_id))
         conn.commit()
         conn.close()
         return jsonify({'message': 'Mutual fund updated successfully'}), 200
@@ -356,6 +419,45 @@ def delete_mutual_fund(mf_id):
         conn.commit()
         conn.close()
         return jsonify({'message': 'Mutual fund deleted successfully'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/mutual-funds/current-values', methods=['GET'])
+def get_mutual_funds_current_values():
+    """Refresh latest mutual fund NAVs and stored total values."""
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute('SELECT id, fund_name, isin, units, nav, total_value, purchase_date FROM mutual_funds')
+        funds = [dict(row) for row in cursor.fetchall()]
+        results = []
+
+        for fund in funds:
+            nav = get_mutual_fund_nav(fund['isin'])
+            units = float(fund['units'])
+            if nav > 0:
+                total_value = calculate_mutual_fund_total(units, nav)
+                cursor.execute(
+                    'UPDATE mutual_funds SET nav=?, total_value=? WHERE id=?',
+                    (nav, total_value, fund['id'])
+                )
+            else:
+                nav = float(fund['nav'])
+                total_value = float(fund['total_value'])
+
+            results.append({
+                'id': fund['id'],
+                'fund_name': fund['fund_name'],
+                'isin': fund['isin'],
+                'units': units,
+                'nav': nav,
+                'total_value': total_value,
+                'purchase_date': fund['purchase_date']
+            })
+
+        conn.commit()
+        conn.close()
+        return jsonify(results)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -400,7 +502,13 @@ def get_stocks():
 def add_stock():
     data = request.json
     symbol = data['symbol']
-    quantity = data['quantity']
+    try:
+        quantity = float(data['quantity'])
+    except (TypeError, ValueError):
+        return jsonify({'error': 'Quantity must be a number'}), 400
+    if not math.isfinite(quantity) or quantity <= 0:
+        return jsonify({'error': 'Quantity must be greater than zero'}), 400
+
     price_usd = get_current_stock_price(symbol)
     total_value = 0.0
     if price_usd > 0 and quantity > 0:
@@ -422,7 +530,13 @@ def update_stock(stock_id):
     try:
         data = request.json
         symbol = data['symbol']
-        quantity = data['quantity']
+        try:
+            quantity = float(data['quantity'])
+        except (TypeError, ValueError):
+            return jsonify({'error': 'Quantity must be a number'}), 400
+        if not math.isfinite(quantity) or quantity <= 0:
+            return jsonify({'error': 'Quantity must be greater than zero'}), 400
+
         price_usd = get_current_stock_price(symbol)
         total_value = 0.0
         if price_usd > 0 and quantity > 0:
@@ -1049,14 +1163,23 @@ def import_excel():
                 cursor.execute('DELETE FROM mutual_funds')
                 for row in rows[1:]:
                     row_dict = dict(zip(headers, row))
+                    isin = str(row_dict.get('isin') or '').strip().upper()
+                    units = safe_float(row_dict.get('units'))
+                    nav = get_mutual_fund_nav(isin)
+                    if nav <= 0:
+                        nav = safe_float(row_dict.get('nav'))
+                    total_value = safe_float(row_dict.get('total_value'))
+                    if nav > 0:
+                        total_value = calculate_mutual_fund_total(units, nav)
                     cursor.execute('''
-                        INSERT INTO mutual_funds (fund_name, units, nav, total_value, purchase_date)
-                        VALUES (?, ?, ?, ?, ?)
+                        INSERT INTO mutual_funds (fund_name, isin, units, nav, total_value, purchase_date)
+                        VALUES (?, ?, ?, ?, ?, ?)
                     ''', (
                         row_dict.get('fund_name'),
-                        safe_float(row_dict.get('units')),
-                        safe_float(row_dict.get('nav')),
-                        safe_float(row_dict.get('total_value')),
+                        isin,
+                        units,
+                        nav,
+                        total_value,
                         row_dict.get('purchase_date') or ''
                     ))
 
