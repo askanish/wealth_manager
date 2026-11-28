@@ -1,5 +1,28 @@
 const API_URL = '/api';
 
+let activeApiRequests = 0;
+
+function updateApiLoadingIndicator() {
+    const indicator = document.getElementById('apiLoadingIndicator');
+    if (!indicator) return;
+
+    const isLoading = activeApiRequests > 0;
+    indicator.hidden = !isLoading;
+    indicator.setAttribute('aria-hidden', String(!isLoading));
+}
+
+async function fetchWithLoading(...args) {
+    activeApiRequests += 1;
+    updateApiLoadingIndicator();
+
+    try {
+        return await fetch(...args);
+    } finally {
+        activeApiRequests -= 1;
+        updateApiLoadingIndicator();
+    }
+}
+
 let wealthDistributionChartInstance = null;
 let assetAllocationChartInstance = null;
 let lastPortfolioData = null;
@@ -319,7 +342,7 @@ function renderAssetAllocationChart(data) {
 async function refreshStockPrices() {
     try {
         console.log('Refreshing stock prices...');
-        const response = await fetch(`${API_URL}/stocks/current-values`);
+        const response = await fetchWithLoading(`${API_URL}/stocks/current-values`);
         if (!response.ok) {
             throw new Error(`Stock refresh API returned status ${response.status}`);
         }
@@ -336,7 +359,7 @@ async function refreshStockPrices() {
 async function refreshMutualFundNAVs() {
     try {
         console.log('Refreshing mutual fund NAVs...');
-        const response = await fetch(`${API_URL}/mutual-funds/current-values`);
+        const response = await fetchWithLoading(`${API_URL}/mutual-funds/current-values`);
         if (!response.ok) {
             throw new Error(`Mutual fund NAV refresh API returned status ${response.status}`);
         }
@@ -353,7 +376,7 @@ async function refreshMutualFundNAVs() {
 async function loadPortfolioSummary() {
     try {
         console.log('Loading portfolio summary...');
-        const response = await fetch(`${API_URL}/portfolio-summary`);
+        const response = await fetchWithLoading(`${API_URL}/portfolio-summary`);
         
         if (!response.ok) {
             throw new Error(`API returned status ${response.status}`);
@@ -725,7 +748,7 @@ async function deleteAsset(assetType, id) {
     
     try {
         const config = ASSET_TYPES[assetType];
-        const response = await fetch(`${API_URL}/${config.apiEndpoint}/${id}`, {
+        const response = await fetchWithLoading(`${API_URL}/${config.apiEndpoint}/${id}`, {
             method: 'DELETE'
         });
         
@@ -751,7 +774,7 @@ async function loadAssets(assetType) {
     try {
         const config = ASSET_TYPES[assetType];
         console.log(`load${assetType}: Starting...`);
-        const response = await fetch(`${API_URL}/${config.apiEndpoint}`);
+        const response = await fetchWithLoading(`${API_URL}/${config.apiEndpoint}`);
         console.log(`load${assetType}: API response status:`, response.status);
         
         const items = await response.json();
@@ -857,7 +880,7 @@ if (fdForm) {
             
             console.log(`Sending ${method} request to ${url}`);
             
-            const response = await fetch(url, {
+            const response = await fetchWithLoading(url, {
                 method: method,
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)
@@ -938,7 +961,7 @@ if (mfForm) {
             
             console.log(`Sending ${method} request to ${url}`);
             
-            const response = await fetch(url, {
+            const response = await fetchWithLoading(url, {
                 method: method,
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)
@@ -1012,7 +1035,7 @@ document.getElementById('stocksForm').addEventListener('submit', async (e) => {
         const url = editId ? `${API_URL}/${config.apiEndpoint}/${editId}` : `${API_URL}/${config.apiEndpoint}`;
         const method = editId ? 'PUT' : 'POST';
         
-        const response = await fetch(url, {
+        const response = await fetchWithLoading(url, {
             method: method,
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(formData)
@@ -1078,7 +1101,7 @@ document.getElementById('ppfForm').addEventListener('submit', async (e) => {
         const url = editId ? `${API_URL}/${config.apiEndpoint}/${editId}` : `${API_URL}/${config.apiEndpoint}`;
         const method = editId ? 'PUT' : 'POST';
         
-        const response = await fetch(url, {
+        const response = await fetchWithLoading(url, {
             method: method,
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(formData)
@@ -1144,7 +1167,7 @@ document.getElementById('bondsForm').addEventListener('submit', async (e) => {
         const url = editId ? `${API_URL}/${config.apiEndpoint}/${editId}` : `${API_URL}/${config.apiEndpoint}`;
         const method = editId ? 'PUT' : 'POST';
         
-        const response = await fetch(url, {
+        const response = await fetchWithLoading(url, {
             method: method,
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(formData)
@@ -1245,7 +1268,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (downloadBtn) {
         downloadBtn.addEventListener('click', async () => {
             try {
-                const response = await fetch(`${API_URL}/export-excel`);
+                const response = await fetchWithLoading(`${API_URL}/export-excel`);
                 if (!response.ok) throw new Error('Network response was not ok');
                 const blob = await response.blob();
                 const url = window.URL.createObjectURL(blob);
@@ -1289,7 +1312,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const formData = new FormData();
                 formData.append('file', file);
 
-                const response = await fetch(`${API_URL}/import-excel`, {
+                const response = await fetchWithLoading(`${API_URL}/import-excel`, {
                     method: 'POST',
                     body: formData
                 });
@@ -1339,7 +1362,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 async function recordSnapshot() {
     try {
         console.log('Recording snapshot...');
-        const response = await fetch(`${API_URL}/portfolio-snapshot`, {
+        const response = await fetchWithLoading(`${API_URL}/portfolio-snapshot`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ snapshot_date: new Date().toISOString().split('T')[0] })
@@ -1368,7 +1391,7 @@ async function recordSnapshot() {
 async function loadHistoricalSnapshots() {
     try {
         console.log('Loading historical snapshots...');
-        const response = await fetch(`${API_URL}/portfolio-snapshots`);
+        const response = await fetchWithLoading(`${API_URL}/portfolio-snapshots`);
         
         console.log('Snapshots response status:', response.status);
         
@@ -1604,7 +1627,7 @@ function renderSnapshotsTable(snapshots) {
             }
 
             try {
-                const response = await fetch(`${API_URL}/portfolio-snapshots/${snapshotId}`, {
+                const response = await fetchWithLoading(`${API_URL}/portfolio-snapshots/${snapshotId}`, {
                     method: 'DELETE'
                 });
 

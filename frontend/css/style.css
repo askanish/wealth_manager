@@ -1393,3 +1393,49 @@ h6 {
 [data-theme="dark"] .summary-card--ppf-interest #ppf-interest-summary {
     color: var(--text-on-accent);
 }
+
+.api-loading-indicator {
+    position: fixed;
+    top: 1rem;
+    left: 50%;
+    z-index: 1100;
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.65rem 0.9rem;
+    transform: translateX(-50%);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    box-shadow: var(--shadow-md);
+    font-size: 0.875rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.api-loading-indicator[hidden] {
+    display: none;
+}
+
+.api-loading-spinner {
+    width: 1rem;
+    height: 1rem;
+    flex: 0 0 auto;
+    border: 2px solid var(--border-strong);
+    border-right-color: var(--accent);
+    border-radius: 50%;
+    animation: api-loading-spin 0.7s linear infinite;
+}
+
+@keyframes api-loading-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .api-loading-spinner {
+        animation: none;
+    }
+}
