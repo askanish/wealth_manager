@@ -770,14 +770,16 @@ async function deleteAsset(assetType, id) {
     }
 }
 
-async function loadAssets(assetType) {
+async function loadAssets(assetType, loadedItems) {
     try {
         const config = ASSET_TYPES[assetType];
         console.log(`load${assetType}: Starting...`);
-        const response = await fetchWithLoading(`${API_URL}/${config.apiEndpoint}`);
-        console.log(`load${assetType}: API response status:`, response.status);
-        
-        const items = await response.json();
+        let items = loadedItems;
+        if (items === undefined) {
+            const response = await fetchWithLoading(`${API_URL}/${config.apiEndpoint}`);
+            console.log(`load${assetType}: API response status:`, response.status);
+            items = await response.json();
+        }
         console.log(`load${assetType}: Received items:`, items);
         
         let html = '<div class="card mt-3"><div class="card-body"><h5 class="card-title">' + assetType + ' List</h5>';
@@ -1020,8 +1022,8 @@ async function deleteStock(id) {
 }
 
 async function loadStocks() {
-    await refreshStockPrices();
-    await loadAssets('STOCK');
+    const stocks = await refreshStockPrices();
+    await loadAssets('STOCK', stocks === null ? undefined : stocks);
 }
 
 document.getElementById('stocksForm').addEventListener('submit', async (e) => {
@@ -1235,7 +1237,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     initTheme();
     initLayout();
     console.log('Page loaded - initializing data load');
-    await refreshStockPrices();
     loadPortfolioSummary();
     loadFixedDeposits();
     loadMutualFunds();

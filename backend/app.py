@@ -586,7 +586,7 @@ def get_stocks_current_values():
     try:
         conn = get_db()
         cursor = conn.cursor()
-        cursor.execute('SELECT id, stock_name, symbol, quantity, total_value FROM stocks')
+        cursor.execute('SELECT id, stock_name, symbol, quantity, total_value, purchase_date FROM stocks')
         stocks = [dict(row) for row in cursor.fetchall()]
 
         results = []
@@ -609,6 +609,7 @@ def get_stocks_current_values():
                 'stock_name': s['stock_name'],
                 'symbol': symbol,
                 'quantity': quantity,
+                'purchase_date': s['purchase_date'],
                 'price_usd': price_usd,
                 'current_price': current_price,
                 'total_usd': total_usd,
